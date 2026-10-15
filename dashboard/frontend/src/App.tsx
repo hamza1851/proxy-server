@@ -4,6 +4,8 @@ import { Header } from './components/layout/Header.js';
 import { CliTerminal } from './components/layout/CliTerminal.js';
 import { MatrixCanvas } from './components/common/MatrixCanvas.js';
 import { CrtOverlay } from './components/common/CrtOverlay.js';
+import { ErrorBoundary } from './components/common/ErrorBoundary.js';
+import { LoginView } from './components/auth/LoginView.js';
 import { TelemetryPanel } from './components/global/TelemetryPanel.js';
 import { TargetMatrix } from './components/global/TargetMatrix.js';
 import { LiveStreamTable } from './components/global/LiveStreamTable.js';
@@ -16,8 +18,13 @@ import { PhoneMockup } from './components/devices/PhoneMockup.js';
 import { QrModal } from './components/modals/QrModal.js';
 
 export const AppContent: React.FC = () => {
-  const { activeTab, telemetry } = useDashboard();
+  const { activeTab, telemetry, isAuthenticated } = useDashboard();
   const [isCliOpen, setIsCliOpen] = useState<boolean>(false);
+
+  // If not authenticated, render the Cyberpunk Login portal
+  if (!isAuthenticated) {
+    return <LoginView />;
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col bg-cyber-bg text-slate-100 font-mono">
@@ -39,43 +46,45 @@ export const AppContent: React.FC = () => {
         onClose={() => setIsCliOpen(false)}
       />
 
-      {/* Main View Area */}
+      {/* Main View Area guarded with ErrorBoundary */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6 relative z-10">
-        {/* GLOBAL HUD TAB */}
-        {activeTab === 'global' && (
-          <div className="space-y-6 animate-fadeIn">
-            <TelemetryPanel />
-            <TargetMatrix />
-            <LiveStreamTable />
-          </div>
-        )}
-
-        {/* DEVICE OPS TAB */}
-        {activeTab === 'devices' && (
-          <div className="space-y-6 animate-fadeIn">
-            <DeviceRoster />
-            <DeviceMonitoring />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DeviceServiceMatrix />
-              <DeviceCustomRules />
+        <ErrorBoundary fallbackTitle="GLOBAL HUD COMPONENT FAULT">
+          {/* GLOBAL HUD TAB */}
+          {activeTab === 'global' && (
+            <div className="space-y-6 animate-fadeIn">
+              <TelemetryPanel />
+              <TargetMatrix />
+              <LiveStreamTable />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* SPLASH STUDIO TAB */}
-        {activeTab === 'splash' && (
-          <div className="space-y-6 animate-fadeIn">
-            <DeviceRoster />
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              <div className="lg:col-span-7">
-                <SplashDesigner />
-              </div>
-              <div className="lg:col-span-5 flex justify-center sticky top-20">
-                <PhoneMockup />
+          {/* DEVICE OPS TAB */}
+          {activeTab === 'devices' && (
+            <div className="space-y-6 animate-fadeIn">
+              <DeviceRoster />
+              <DeviceMonitoring />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DeviceServiceMatrix />
+                <DeviceCustomRules />
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* SPLASH STUDIO TAB */}
+          {activeTab === 'splash' && (
+            <div className="space-y-6 animate-fadeIn">
+              <DeviceRoster />
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-7">
+                  <SplashDesigner />
+                </div>
+                <div className="lg:col-span-5 flex justify-center sticky top-20">
+                  <PhoneMockup />
+                </div>
+              </div>
+            </div>
+          )}
+        </ErrorBoundary>
       </main>
 
       {/* Onboarding QR Modal */}

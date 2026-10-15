@@ -1,5 +1,17 @@
-import React from 'react';
-import { Shield, Flame, Instagram, Youtube, Ban, Gamepad2, Skull, EyeOff } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Shield,
+  Flame,
+  Instagram,
+  Youtube,
+  Ban,
+  Gamepad2,
+  Skull,
+  EyeOff,
+  Plus,
+  Trash2,
+  Globe
+} from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { TacticalButton } from '../common/TacticalButton.js';
 
@@ -22,11 +34,32 @@ const GLOBAL_SERVICES: ServiceItem[] = [
 ];
 
 export const TargetMatrix: React.FC = () => {
-  const { blockedServices, toggleUniversalService } = useDashboard();
+  const {
+    blockedServices,
+    toggleUniversalService,
+    customWebsites,
+    addUniversalWebsite,
+    removeUniversalWebsite
+  } = useDashboard();
+
+  const [newDomain, setNewDomain] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const handleAddWebsite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = newDomain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    if (!clean) return;
+
+    setSubmitting(true);
+    await addUniversalWebsite(clean);
+    setNewDomain('');
+    setSubmitting(false);
+  };
 
   return (
-    <div className="bg-cyber-card/90 rounded-lg p-4 border border-cyber-border/80">
-      <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+    <div className="bg-cyber-card/90 rounded-lg p-4 border border-cyber-border/80 space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div>
           <h2 className="font-hud font-bold text-sm tracking-wider text-white">
             UNIVERSAL TARGET MATRIX // GLOBAL ENFORCEMENT
@@ -37,6 +70,7 @@ export const TargetMatrix: React.FC = () => {
         </div>
       </div>
 
+      {/* Preset Service Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {GLOBAL_SERVICES.map((srv) => {
           const isBlocked = blockedServices.includes(srv.id);
@@ -83,6 +117,64 @@ export const TargetMatrix: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Universal Website Block Form & Custom List */}
+      <div className="pt-3 border-t border-slate-800/80">
+        <div className="flex items-center space-x-2 mb-2">
+          <Globe className="w-4 h-4 text-cyber-cyan" />
+          <h3 className="font-hud font-bold text-xs tracking-wider text-white">
+            ADD ARBITRARY DOMAIN / WEBSITE TO GLOBAL BLOCKLIST
+          </h3>
+        </div>
+
+        <form onSubmit={handleAddWebsite} className="flex gap-2 mb-3">
+          <input
+            type="text"
+            required
+            placeholder="e.g. reddit.com, twitter.com, steamcommunity.com..."
+            value={newDomain}
+            onChange={(e) => setNewDomain(e.target.value)}
+            className="flex-1 bg-black/50 border border-slate-700 focus:border-cyber-cyan text-cyber-cyan px-3 py-2 rounded text-xs font-mono outline-none placeholder:text-slate-600 transition-colors"
+          />
+          <TacticalButton
+            type="submit"
+            size="sm"
+            variant="danger"
+            disabled={submitting}
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            BLOCK GLOBALLY
+          </TacticalButton>
+        </form>
+
+        {/* List of Custom Added Blocked Websites */}
+        {customWebsites.length > 0 && (
+          <div className="bg-black/40 rounded p-2.5 border border-slate-800/80">
+            <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">
+              Active Global Custom Website Rules ({customWebsites.length})
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {customWebsites.map((site) => (
+                <span
+                  key={site.domain}
+                  className="inline-flex items-center space-x-2 px-2.5 py-1 rounded bg-cyber-danger/10 border border-cyber-danger/40 text-cyber-danger text-xs font-mono shadow-[0_0_8px_rgba(255,0,85,0.2)]"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyber-danger animate-pulse" />
+                  <span className="font-bold">{site.domain}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeUniversalWebsite(site.domain)}
+                    className="hover:text-white transition-colors"
+                    title="Remove global restriction"
+                  >
+                    <Trash2 className="w-3 h-3 text-slate-400 hover:text-white" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

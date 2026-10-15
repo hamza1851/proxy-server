@@ -93,3 +93,22 @@ export interface ServiceDefinition {
   icon: string;
   category: 'social' | 'video' | 'entertainment' | 'danger';
 }
+
+export interface CustomWebsiteRule {
+  domain: string;
+  name?: string;
+  category?: string;
+  enabled?: boolean;
+}
+
+export interface OperatorUser {
+  username: string;
+  role: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token?: string;
+  user?: OperatorUser;
+  error?: string;
+}

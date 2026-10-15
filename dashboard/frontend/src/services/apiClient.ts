@@ -3,29 +3,87 @@ import {
   Device,
   QueryLogEntry,
   DeviceMonitoringStats,
-  CustomSplashConfig
+  CustomSplashConfig,
+  CustomWebsiteRule,
+  AuthResponse,
+  OperatorUser
 } from '../types/index.js';
 
 const API_BASE = '/api';
 
 export class ApiClient {
+  public static getToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('cyber_proxy_token');
+  }
+
+  public static setToken(token: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cyber_proxy_token', token);
+    }
+  }
+
+  public static clearToken(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cyber_proxy_token');
+      localStorage.removeItem('cyber_proxy_operator');
+    }
+  }
+
   private static async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const token = this.getToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options?.headers as Record<string, string> || {})
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options?.headers || {})
-        }
+        headers
       });
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+
+      if (res.status === 401 && endpoint !== '/auth/login') {
+        this.clearToken();
+        if (typeof window !== 'undefined' && !window.location.hash.includes('login')) {
+          window.dispatchEvent(new Event('auth:unauthorized'));
+        }
+        throw new Error('Unauthorized');
       }
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      }
+
       return (await res.json()) as T;
     } catch (err) {
       console.error(`[ApiClient] Request to ${endpoint} failed:`, err);
       throw err;
     }
+  }
+
+  public static async login(username: string, password: string): Promise<AuthResponse> {
+    const res = await this.request<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+    if (res.token) {
+      this.setToken(res.token);
+      if (res.user) {
+        localStorage.setItem('cyber_proxy_operator', JSON.stringify(res.user));
+      }
+    }
+    return res;
+  }
+
+  public static async getMe(): Promise<OperatorUser> {
+    const res = await this.request<{ success: boolean; user: OperatorUser }>('/auth/me');
+    return res.user;
   }
 
   public static async getTelemetry(): Promise<TelemetryData> {
@@ -76,14 +134,36 @@ export class ApiClient {
     return this.request<DeviceMonitoringStats>(`/devices/${id}/monitoring`);
   }
 
-  public static async getBlockedServices(): Promise<string[]> {
-    return this.request<string[]>('/services');
+  public static async getBlockedServices(): Promise<{ services: string[]; customWebsites: CustomWebsiteRule[] }> {
+    const res = await this.request<any>('/services');
+    if (Array.isArray(res)) {
+      return { services: res, customWebsites: [] };
+    }
+    return {
+      services: res.services || [],
+      customWebsites: res.customWebsites || []
+    };
   }
 
   public static async updateBlockedServices(services: string[]): Promise<boolean> {
     const res = await this.request<{ success: boolean }>('/services', {
       method: 'POST',
       body: JSON.stringify({ services })
+    });
+    return res.success;
+  }
+
+  public static async addUniversalWebsite(domain: string, name?: string): Promise<boolean> {
+    const res = await this.request<{ success: boolean }>('/rules/universal', {
+      method: 'POST',
+      body: JSON.stringify({ domain, name })
+    });
+    return res.success;
+  }
+
+  public static async removeUniversalWebsite(domain: string): Promise<boolean> {
+    const res = await this.request<{ success: boolean }>(`/rules/universal/${encodeURIComponent(domain)}`, {
+      method: 'DELETE'
     });
     return res.success;
   }

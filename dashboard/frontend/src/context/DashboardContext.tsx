@@ -5,7 +5,10 @@ import {
   QueryLogEntry,
   DeviceMonitoringStats,
   CustomSplashConfig,
-  TabType
+  CustomWebsiteRule,
+  OperatorUser,
+  TabType,
+  AuthResponse
 } from '../types/index.js';
 import { ApiClient } from '../services/apiClient.js';
 import { useAudio } from '../hooks/useAudio.js';
@@ -17,12 +20,19 @@ interface DashboardContextType {
   selectedMonitoring: DeviceMonitoringStats | null;
   queries: QueryLogEntry[];
   blockedServices: string[];
+  customWebsites: CustomWebsiteRule[];
   activeTab: TabType;
   soundEnabled: boolean;
   crtEnabled: boolean;
   qrModalOpen: boolean;
   loading: boolean;
   error: string | null;
+
+  // Auth State
+  isAuthenticated: boolean;
+  operator: OperatorUser | null;
+  login: (username: string, password: string) => Promise<AuthResponse>;
+  logout: () => void;
 
   // Actions
   setActiveTab: (tab: TabType) => void;
@@ -34,6 +44,8 @@ interface DashboardContextType {
   toggleDeviceBypass: (id: string, bypassed: boolean) => Promise<void>;
   freezeDevice: (id: string, minutes: number) => Promise<void>;
   toggleUniversalService: (serviceId: string) => Promise<void>;
+  addUniversalWebsite: (domain: string) => Promise<void>;
+  removeUniversalWebsite: (domain: string) => Promise<void>;
   toggleDeviceService: (deviceId: string, serviceId: string) => Promise<void>;
   updateDeviceRules: (deviceId: string, services: string[], customRules: string[]) => Promise<void>;
   updateDeviceSplash: (deviceId: string, splash: CustomSplashConfig) => Promise<void>;
@@ -43,24 +55,91 @@ interface DashboardContextType {
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
 
+const getTabFromHash = (): TabType => {
+  if (typeof window === 'undefined') return 'global';
+  const hash = window.location.hash.replace('#', '').toLowerCase();
+  if (hash === 'devices') return 'devices';
+  if (hash === 'splash') return 'splash';
+  return 'global';
+};
+
 export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return Boolean(ApiClient.getToken());
+  });
+  const [operator, setOperator] = useState<OperatorUser | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem('cyber_proxy_operator');
+    return stored ? JSON.parse(stored) : null;
+  });
+
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [selectedMonitoring, setSelectedMonitoring] = useState<DeviceMonitoringStats | null>(null);
   const [queries, setQueries] = useState<QueryLogEntry[]>([]);
   const [blockedServices, setBlockedServices] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<TabType>('global');
+  const [customWebsites, setCustomWebsites] = useState<CustomWebsiteRule[]>([]);
+  const [activeTab, setActiveTabState] = useState<TabType>(getTabFromHash);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
   const [qrModalOpen, setQrModalOpen] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const { playBeep, playAlarm } = useAudio(soundEnabled);
 
+  // Sync tab state with browser URL hash
+  const setActiveTab = (tab: TabType) => {
+    playBeep(850, 0.04);
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      window.location.hash = `#${tab}`;
+    }
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveTabState(getTabFromHash());
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Listen for 401 unauthorized
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setIsAuthenticated(false);
+      setOperator(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  const login = async (username: string, password: string): Promise<AuthResponse> => {
+    try {
+      const res = await ApiClient.login(username, password);
+      if (res.success && res.token) {
+        setIsAuthenticated(true);
+        setOperator(res.user || { username, role: 'operator' });
+        refreshAll();
+      }
+      return res;
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Authentication failed' };
+    }
+  };
+
+  const logout = () => {
+    playBeep(450, 0.08);
+    ApiClient.clearToken();
+    setIsAuthenticated(false);
+    setOperator(null);
+  };
+
   // Poll Telemetry & Queries
   const refreshTelemetry = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
       const data = await ApiClient.getTelemetry();
       setTelemetry(data);
@@ -68,18 +147,20 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch {
       // Keep resilient
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const refreshQueries = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
       const logs = await ApiClient.getQueries();
       setQueries(logs);
     } catch {
       // Keep resilient
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const refreshDevices = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
       const list = await ApiClient.getDevices();
       setDevices(list);
@@ -89,49 +170,70 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch {
       // Keep resilient
     }
-  }, [selectedDeviceId]);
+  }, [isAuthenticated, selectedDeviceId]);
+
+  const refreshServices = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const res = await ApiClient.getBlockedServices();
+      setBlockedServices(res.services);
+      setCustomWebsites(res.customWebsites);
+    } catch {
+      // Keep resilient
+    }
+  }, [isAuthenticated]);
 
   const refreshMonitoring = useCallback(async (devId: string) => {
+    if (!isAuthenticated) return;
     try {
       const data = await ApiClient.getDeviceMonitoring(devId);
       setSelectedMonitoring(data);
     } catch {
       // Keep resilient
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const refreshAll = useCallback(async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
-      await Promise.all([refreshTelemetry(), refreshQueries(), refreshDevices()]);
+      await Promise.all([
+        refreshTelemetry(),
+        refreshQueries(),
+        refreshDevices(),
+        refreshServices()
+      ]);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('Telemetry link offline');
     } finally {
       setLoading(false);
     }
-  }, [refreshTelemetry, refreshQueries, refreshDevices]);
+  }, [isAuthenticated, refreshTelemetry, refreshQueries, refreshDevices, refreshServices]);
 
   // Initial load
   useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
+    if (isAuthenticated) {
+      refreshAll();
+    }
+  }, [isAuthenticated, refreshAll]);
 
   // Telemetry loop every 3.5s
   useEffect(() => {
+    if (!isAuthenticated) return;
     const timer = setInterval(() => {
       refreshTelemetry();
       refreshQueries();
     }, 3500);
     return () => clearInterval(timer);
-  }, [refreshTelemetry, refreshQueries]);
+  }, [isAuthenticated, refreshTelemetry, refreshQueries]);
 
   // Refresh monitoring when selected device changes
   useEffect(() => {
-    if (selectedDeviceId) {
+    if (selectedDeviceId && isAuthenticated) {
       refreshMonitoring(selectedDeviceId);
     }
-  }, [selectedDeviceId, refreshMonitoring]);
+  }, [selectedDeviceId, isAuthenticated, refreshMonitoring]);
 
   const selectedDevice = devices.find((d) => d.id === selectedDeviceId) || devices[0] || null;
 
@@ -173,6 +275,18 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await refreshTelemetry();
   };
 
+  const addUniversalWebsite = async (domain: string) => {
+    playBeep(950, 0.05);
+    await ApiClient.addUniversalWebsite(domain);
+    await refreshServices();
+  };
+
+  const removeUniversalWebsite = async (domain: string) => {
+    playBeep(650, 0.06);
+    await ApiClient.removeUniversalWebsite(domain);
+    await refreshServices();
+  };
+
   const toggleDeviceService = async (deviceId: string, serviceId: string) => {
     playBeep(850, 0.04);
     const dev = devices.find((d) => d.id === deviceId);
@@ -208,12 +322,17 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         selectedMonitoring,
         queries,
         blockedServices,
+        customWebsites,
         activeTab,
         soundEnabled,
         crtEnabled,
         qrModalOpen,
         loading,
         error,
+        isAuthenticated,
+        operator,
+        login,
+        logout,
         setActiveTab,
         setSoundEnabled,
         setCrtEnabled,
@@ -223,6 +342,8 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         toggleDeviceBypass,
         freezeDevice,
         toggleUniversalService,
+        addUniversalWebsite,
+        removeUniversalWebsite,
         toggleDeviceService,
         updateDeviceRules,
         updateDeviceSplash,

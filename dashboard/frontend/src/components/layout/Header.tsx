@@ -8,7 +8,9 @@ import {
   Terminal,
   Activity,
   Layers,
-  Smartphone
+  Smartphone,
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { TacticalButton } from '../common/TacticalButton.js';
@@ -28,7 +30,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleCli, isCliOpen }) => {
     crtEnabled,
     setCrtEnabled,
     setQrModalOpen,
-    telemetry
+    telemetry,
+    operator,
+    logout
   } = useDashboard();
 
   const [utcTime, setUtcTime] = useState<string>('');
@@ -92,11 +96,19 @@ export const Header: React.FC<HeaderProps> = ({ onToggleCli, isCliOpen }) => {
           ))}
         </div>
 
-        {/* Tactical Controls & Clock */}
+        {/* Tactical Controls & Operator Auth */}
         <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
           <span className="hidden xl:inline text-[11px] font-mono text-slate-400 mr-2">
             {utcTime}
           </span>
+
+          {/* Operator Badge */}
+          {operator && (
+            <div className="hidden sm:flex items-center space-x-1.5 px-2 py-1 rounded bg-black/60 border border-slate-800 text-[10px] font-mono text-cyber-cyan">
+              <UserCheck className="w-3 h-3 text-cyber-green" />
+              <span className="truncate max-w-[80px]">{operator.username}</span>
+            </div>
+          )}
 
           <TacticalButton
             size="sm"
@@ -139,6 +151,16 @@ export const Header: React.FC<HeaderProps> = ({ onToggleCli, isCliOpen }) => {
             title="Toggle CRT Scanlines"
           >
             <Tv className={`w-4 h-4 ${crtEnabled ? 'text-cyber-cyan' : 'text-slate-500'}`} />
+          </TacticalButton>
+
+          <TacticalButton
+            size="sm"
+            variant="danger"
+            onClick={logout}
+            title="Terminate Operator Session"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden md:inline ml-1">EXIT</span>
           </TacticalButton>
         </div>
       </div>

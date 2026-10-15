@@ -8,12 +8,12 @@ import { Device } from '../../types/index.js';
 export const DeviceRoster: React.FC = () => {
   const { devices, selectedDevice, selectDevice, toggleDeviceBypass, freezeDevice } = useDashboard();
 
-  const getDeviceIcon = (os: string) => {
-    const lower = os.toLowerCase();
-    if (lower.includes('ios') || lower.includes('android') || lower.includes('phone')) {
+  const getDeviceIcon = (os?: string, name?: string) => {
+    const text = `${os || ''} ${name || ''}`.toLowerCase();
+    if (text.includes('ios') || text.includes('android') || text.includes('phone')) {
       return <Smartphone className="w-5 h-5 text-cyber-cyan" />;
     }
-    if (lower.includes('macos') || lower.includes('windows') || lower.includes('linux')) {
+    if (text.includes('macos') || text.includes('windows') || text.includes('linux') || text.includes('laptop')) {
       return <Laptop className="w-5 h-5 text-cyber-green" />;
     }
     return <Tv className="w-5 h-5 text-cyber-purple" />;
@@ -35,8 +35,12 @@ export const DeviceRoster: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {devices.map((device: Device) => {
           const isSelected = selectedDevice?.id === device.id;
-          const isBypassed = device.bypassed;
-          const isCurfewActive = device.curfew?.active;
+          const isBypassed = Boolean(device.bypassed);
+          const isCurfewActive = Boolean(device.curfew?.active);
+          const deviceName = device.name || 'Client Device';
+          const deviceIp = device.ip || '10.8.0.2';
+          const deviceOs = device.os || 'device';
+          const deviceStatus = device.status || 'online';
 
           return (
             <div
@@ -51,21 +55,21 @@ export const DeviceRoster: React.FC = () => {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center space-x-2.5">
                   <span className="p-2 rounded bg-black/50 border border-slate-800">
-                    {getDeviceIcon(device.os)}
+                    {getDeviceIcon(deviceOs, deviceName)}
                   </span>
                   <div>
                     <h3 className="font-hud font-bold text-xs text-white truncate max-w-[140px]">
-                      {device.name}
+                      {deviceName}
                     </h3>
                     <div className="text-[10px] font-mono text-slate-400">
-                      {device.ip} // {device.os}
+                      {deviceIp} // {deviceOs}
                     </div>
                   </div>
                 </div>
 
                 <StatusBadge
-                  status={device.status}
-                  label={device.status}
+                  status={deviceStatus}
+                  label={deviceStatus}
                 />
               </div>
 
