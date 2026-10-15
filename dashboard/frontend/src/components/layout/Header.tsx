@@ -10,7 +10,8 @@ import {
   Layers,
   Smartphone,
   LogOut,
-  UserCheck
+  UserCheck,
+  Sliders
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { TacticalButton } from '../common/TacticalButton.js';
@@ -50,7 +51,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleCli, isCliOpen }) => {
   const navItems: { tab: TabType; label: string; icon: React.ReactNode }[] = [
     { tab: 'global', label: 'GLOBAL HUD', icon: <Activity className="w-3.5 h-3.5 mr-1.5" /> },
     { tab: 'devices', label: 'DEVICE OPS', icon: <Layers className="w-3.5 h-3.5 mr-1.5" /> },
-    { tab: 'splash', label: 'SPLASH STUDIO', icon: <Smartphone className="w-3.5 h-3.5 mr-1.5" /> }
+    { tab: 'splash', label: 'SPLASH STUDIO', icon: <Smartphone className="w-3.5 h-3.5 mr-1.5" /> },
+    { tab: 'configs', label: 'CONFIG MATRIX', icon: <Sliders className="w-3.5 h-3.5 mr-1.5" /> }
   ];
 
   return (

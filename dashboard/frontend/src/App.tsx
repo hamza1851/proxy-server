@@ -15,6 +15,7 @@ import { DeviceServiceMatrix } from './components/devices/DeviceServiceMatrix.js
 import { DeviceCustomRules } from './components/devices/DeviceCustomRules.js';
 import { SplashDesigner } from './components/devices/SplashDesigner.js';
 import { PhoneMockup } from './components/devices/PhoneMockup.js';
+import { ConfigMatrix } from './components/config/ConfigMatrix.js';
 import { QrModal } from './components/modals/QrModal.js';
 
 export const AppContent: React.FC = () => {
@@ -82,6 +83,13 @@ export const AppContent: React.FC = () => {
                   <PhoneMockup />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* CONFIG MATRIX TAB */}
+          {activeTab === 'configs' && (
+            <div className="space-y-6 animate-fadeIn">
+              <ConfigMatrix />
             </div>
           )}
         </ErrorBoundary>

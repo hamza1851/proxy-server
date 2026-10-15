@@ -8,7 +8,9 @@ import {
   CustomWebsiteRule,
   OperatorUser,
   TabType,
-  AuthResponse
+  AuthResponse,
+  SystemConfigItem,
+  RuntimeConfig
 } from '../types/index.js';
 import { ApiClient } from '../services/apiClient.js';
 import { useAudio } from '../hooks/useAudio.js';
@@ -21,6 +23,8 @@ interface DashboardContextType {
   queries: QueryLogEntry[];
   blockedServices: string[];
   customWebsites: CustomWebsiteRule[];
+  systemConfigs: SystemConfigItem[];
+  runtimeConfig: RuntimeConfig | null;
   activeTab: TabType;
   soundEnabled: boolean;
   crtEnabled: boolean;
@@ -49,6 +53,9 @@ interface DashboardContextType {
   toggleDeviceService: (deviceId: string, serviceId: string) => Promise<void>;
   updateDeviceRules: (deviceId: string, services: string[], customRules: string[]) => Promise<void>;
   updateDeviceSplash: (deviceId: string, splash: CustomSplashConfig) => Promise<void>;
+  saveConfig: (item: Partial<SystemConfigItem>) => Promise<void>;
+  deleteConfig: (key: string) => Promise<void>;
+  refreshConfigs: () => Promise<void>;
   refreshAll: () => Promise<void>;
   playBeep: (freq?: number, duration?: number, type?: OscillatorType) => void;
 }
@@ -60,6 +67,7 @@ const getTabFromHash = (): TabType => {
   const hash = window.location.hash.replace('#', '').toLowerCase();
   if (hash === 'devices') return 'devices';
   if (hash === 'splash') return 'splash';
+  if (hash === 'configs') return 'configs';
   return 'global';
 };
 
@@ -80,6 +88,8 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [queries, setQueries] = useState<QueryLogEntry[]>([]);
   const [blockedServices, setBlockedServices] = useState<string[]>([]);
   const [customWebsites, setCustomWebsites] = useState<CustomWebsiteRule[]>([]);
+  const [systemConfigs, setSystemConfigs] = useState<SystemConfigItem[]>([]);
+  const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
   const [activeTab, setActiveTabState] = useState<TabType>(getTabFromHash);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
@@ -193,6 +203,17 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [isAuthenticated]);
 
+  const refreshConfigs = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const res = await ApiClient.getConfigs();
+      setSystemConfigs(res.configs || []);
+      setRuntimeConfig(res.runtime || null);
+    } catch {
+      // Keep resilient
+    }
+  }, [isAuthenticated]);
+
   const refreshAll = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
@@ -201,7 +222,8 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         refreshTelemetry(),
         refreshQueries(),
         refreshDevices(),
-        refreshServices()
+        refreshServices(),
+        refreshConfigs()
       ]);
       setError(null);
     } catch {
@@ -209,7 +231,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, refreshTelemetry, refreshQueries, refreshDevices, refreshServices]);
+  }, [isAuthenticated, refreshTelemetry, refreshQueries, refreshDevices, refreshServices, refreshConfigs]);
 
   // Initial load
   useEffect(() => {
@@ -313,6 +335,24 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await refreshDevices();
   };
 
+  const saveConfig = async (item: Partial<SystemConfigItem>) => {
+    playBeep(950, 0.05);
+    const res = await ApiClient.upsertConfig(item);
+    if (res.runtime) {
+      setRuntimeConfig(res.runtime);
+    }
+    await refreshConfigs();
+  };
+
+  const deleteConfig = async (key: string) => {
+    playBeep(650, 0.06);
+    const res = await ApiClient.deleteConfig(key);
+    if (res.runtime) {
+      setRuntimeConfig(res.runtime);
+    }
+    await refreshConfigs();
+  };
+
   return (
     <DashboardContext.Provider
       value={{
@@ -323,6 +363,8 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         queries,
         blockedServices,
         customWebsites,
+        systemConfigs,
+        runtimeConfig,
         activeTab,
         soundEnabled,
         crtEnabled,
@@ -347,6 +389,9 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         toggleDeviceService,
         updateDeviceRules,
         updateDeviceSplash,
+        saveConfig,
+        deleteConfig,
+        refreshConfigs,
         refreshAll,
         playBeep
       }}

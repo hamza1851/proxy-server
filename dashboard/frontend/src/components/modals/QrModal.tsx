@@ -1,26 +1,29 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Smartphone, Shield, Download } from 'lucide-react';
+import { X, Copy, Check, Smartphone, Shield, Download, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { TacticalButton } from '../common/TacticalButton.js';
 
 export const QrModal: React.FC = () => {
-  const { qrModalOpen, setQrModalOpen, selectedDevice } = useDashboard();
+  const { qrModalOpen, setQrModalOpen, selectedDevice, runtimeConfig, setActiveTab } = useDashboard();
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
   if (!qrModalOpen) return null;
 
+  const vpsIp = runtimeConfig?.vpsIp || '';
+  const wgPort = runtimeConfig?.wgPort || 51820;
+  const dohUrl = runtimeConfig?.dohUrl || (vpsIp ? `https://${vpsIp}/dns-query` : 'https://YOUR_VPS_IP/dns-query');
+  const wgDns = runtimeConfig?.wireguardDns || '10.2.0.100';
+
   const wireguardConfig = `[Interface]
 PrivateKey = aAAA...YOUR_DEVICE_PRIVATE_KEY...
 Address = ${selectedDevice?.ip || '10.8.0.2'}/24
-DNS = 10.8.0.1
+DNS = ${wgDns}
 
 [Peer]
 PublicKey = bBBB...SERVER_PUBLIC_KEY...
-Endpoint = YOUR_VPS_IP:51820
+Endpoint = ${vpsIp || 'YOUR_VPS_IP'}:${wgPort}
 AllowedIPs = 0.0.0.0/0, ::/0
 PersistentKeepalive = 25`;
-
-  const dohUrl = 'https://YOUR_VPS_IP/dns-query';
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -28,11 +31,16 @@ PersistentKeepalive = 25`;
     setTimeout(() => setCopiedType(null), 2000);
   };
 
+  const goToConfigMatrix = () => {
+    setQrModalOpen(false);
+    setActiveTab('configs');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div className="relative w-full max-w-xl bg-cyber-bg border border-cyber-cyan/40 rounded-xl p-5 shadow-[0_0_35px_rgba(0,243,255,0.3)] text-xs font-mono">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
           <div className="flex items-center space-x-2 text-cyber-cyan font-hud font-bold text-sm tracking-wider">
             <Smartphone className="w-4 h-4" />
             <span>CLIENT ONBOARDING // [{selectedDevice?.name || 'NEW DEVICE'}]</span>
@@ -45,12 +53,27 @@ PersistentKeepalive = 25`;
           </button>
         </div>
 
+        {/* Warning banner if VPS IP is not yet set in DB or .env */}
+        {!vpsIp && (
+          <div className="mb-4 p-2.5 bg-cyber-danger/15 border border-cyber-danger/50 rounded flex items-center justify-between text-cyber-danger text-[11px]">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>VPS Public IP is unconfigured in system directives.</span>
+            </div>
+            <button
+              onClick={goToConfigMatrix}
+              className="inline-flex items-center font-bold underline hover:text-white transition-colors"
+            >
+              Configure in Matrix <ArrowRight className="w-3 h-3 ml-1" />
+            </button>
+          </div>
+        )}
+
         {/* Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* QR Code Placeholder / SVG */}
           <div className="flex flex-col items-center justify-center p-4 rounded bg-black border border-slate-800">
             <div className="w-44 h-44 bg-white p-2 rounded flex items-center justify-center shadow-lg">
-              {/* High-res clean QR simulation */}
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
                   wireguardConfig
@@ -93,7 +116,7 @@ PersistentKeepalive = 25`;
 
             <div>
               <span className="block text-[10px] font-mono uppercase text-slate-400 mb-1">
-                WireGuard Client File
+                WireGuard Client File (Dynamic Directives)
               </span>
               <div className="bg-black/60 border border-slate-700 p-2 rounded text-[10px] text-slate-400 h-24 overflow-y-auto font-mono">
                 {wireguardConfig}

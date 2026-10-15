@@ -85,7 +85,25 @@ export interface DeviceMonitoringStats {
   topBlocked: DeviceDomainCount[];
 }
 
-export type TabType = 'global' | 'devices' | 'splash';
+export type TabType = 'global' | 'devices' | 'splash' | 'configs';
+
+export interface SystemConfigItem {
+  key: string;
+  value: string;
+  category: 'Network' | 'WireGuard' | 'DNS' | 'Security' | 'System' | 'General';
+  description: string;
+  isSecret: boolean;
+  isSystem: boolean;
+  updatedAt?: string;
+}
+
+export interface RuntimeConfig {
+  vpsIp: string;
+  wgPort: number;
+  dohUrl: string;
+  dotPort: number;
+  wireguardDns: string;
+}
 
 export interface ServiceDefinition {
   id: string;

@@ -6,7 +6,9 @@ import {
   CustomSplashConfig,
   CustomWebsiteRule,
   AuthResponse,
-  OperatorUser
+  OperatorUser,
+  SystemConfigItem,
+  RuntimeConfig
 } from '../types/index.js';
 
 const API_BASE = '/api';
@@ -182,5 +184,28 @@ export class ApiClient {
       body: JSON.stringify({ splash })
     });
     return res.success;
+  }
+
+  public static async getConfigs(): Promise<{ configs: SystemConfigItem[]; runtime: RuntimeConfig }> {
+    return this.request<{ configs: SystemConfigItem[]; runtime: RuntimeConfig }>('/config');
+  }
+
+  public static async getRuntimeConfig(): Promise<RuntimeConfig> {
+    return this.request<RuntimeConfig>('/config/runtime');
+  }
+
+  public static async upsertConfig(
+    item: Partial<SystemConfigItem>
+  ): Promise<{ success: boolean; item: SystemConfigItem; runtime: RuntimeConfig }> {
+    return this.request<{ success: boolean; item: SystemConfigItem; runtime: RuntimeConfig }>('/config', {
+      method: 'POST',
+      body: JSON.stringify(item)
+    });
+  }
+
+  public static async deleteConfig(key: string): Promise<{ success: boolean; runtime: RuntimeConfig }> {
+    return this.request<{ success: boolean; runtime: RuntimeConfig }>(`/config/${encodeURIComponent(key)}`, {
+      method: 'DELETE'
+    });
   }
 }
