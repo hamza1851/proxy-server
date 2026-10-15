@@ -15,16 +15,40 @@
 
 ---
 
+## 📑 Table of Contents
+
+- [Why This Project?](#-why-this-project)
+- [How It Works](#-how-it-works)
+- [1-Minute Quick Start](#-1-minute-quick-start)
+- [Web Dashboards](#-web-dashboards)
+- [Connecting Your Devices](#-connecting-your-devices)
+  - [Android Phones & Tablets](#1-android-phones--tablets)
+  - [iPhone & iPad (iOS)](#2-iphone--ipad-ios)
+  - [Windows & macOS Laptops](#3-windows--macos-laptops)
+  - [Linux Desktops & Servers](#4-linux-desktops--servers)
+- [Restricting Websites & Parental Controls](#-restricting-websites--parental-controls)
+  - [1-Click Service Blocking](#1-one-click-app--service-blocking)
+  - [Custom Domain Blocking](#2-custom-domain-blocking)
+  - [SafeSearch & Adult Content Filter](#3-safesearch--adult-site-filter)
+  - [Real-Time Query Log](#4-live-query-audit-log)
+- [Cloud Firewall & Security Groups](#-cloud-firewall--security-group-notice)
+- [Maintenance & Useful Commands](#-management-commands)
+- [Troubleshooting & FAQ](#-troubleshooting--faq)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
 ## 💡 Why This Project?
 
-Commercial VPNs and proxy services cost monthly subscriptions, log connection metadata, and don't give you control over which websites your family or devices can access.
+Commercial VPNs and proxy services cost recurring monthly fees, track user metadata, and offer zero control over what content is allowed or blocked across your family's devices.
 
-This project gives you **complete digital sovereignty**:
-- 🚀 **100% Free Forever**: No subscriptions, no device limits, no licenses. Runs on your own VPS (including Oracle Cloud Free Tier, DigitalOcean, Hetzner, AWS, etc.).
-- 🔒 **Zero Traceability & Full Encryption**: All traffic from your phone, laptop, or tablet is tunneled through your VPS using WireGuard's state-of-the-art cryptography (`ChaCha20-Poly1305`). Your ISP, cellular carrier, and public Wi-Fi snoopers cannot see which sites you visit or intercept your data.
-- 👨‍👩‍👧‍👦 **Built-in Parental Controls**: 1-click blocking for TikTok, YouTube, Discord, Roblox, Steam, adult sites, gambling, and social media.
-- 🚫 **Network-Wide Ad & Tracker Blocker**: Stops ads, malicious phishing domains, and tracking scripts before they even reach your device, saving mobile data and boosting battery life.
-- 📲 **Universal Device Support**: Connect **Android**, **iPhone / iPad**, **macOS**, **Windows**, **Linux**, or your home router with a simple QR code or configuration profile.
+This project delivers **complete digital sovereignty**:
+- 🚀 **100% Free Forever**: Zero subscriptions, zero licensing fees, zero device limits. Runs on any VPS (including Oracle Cloud Free Tier, DigitalOcean, Hetzner, AWS Lightsail, Linode, etc.).
+- 🔒 **Zero Traceability & Full Encryption**: All traffic from your phone, laptop, or tablet is tunneled through your VPS using WireGuard's state-of-the-art cryptography (`ChaCha20-Poly1305`). Your local ISP, cellular provider, and public Wi-Fi operators cannot snoop on your requests or see what websites you visit.
+- 👨‍👩‍👧‍👦 **Built-in Parental Controls**: 1-click toggles to restrict TikTok, YouTube, Discord, Roblox, Steam, adult sites, gambling, and social platforms.
+- 🚫 **Network-Wide Ad & Tracker Blocker**: Blocks intrusive ads, telemetry, and phishing domains at the DNS level before they reach your device, saving mobile bandwidth and battery life.
+- 📲 **Universal Device Support**: Connect **Android**, **iPhone / iPad**, **macOS**, **Windows**, **Linux**, or home routers via a simple QR code or configuration profile.
 
 ---
 
@@ -61,14 +85,14 @@ This project gives you **complete digital sovereignty**:
 
 ## ⚡ 1-Minute Quick Start
 
-### Option A: The One-Liner (Easiest)
+### Option A: The One-Liner (Fastest)
 SSH into your VPS and run this single command:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/hamza1851/proxy-server/main/setup.sh | bash
 ```
 
-### Option B: Clone & Run
+### Option B: Clone & Run Manually
 
 ```bash
 # 1. Clone the repository
@@ -80,23 +104,23 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-The script will automatically:
-1. Enable kernel packet forwarding (`net.ipv4.ip_forward = 1`).
-2. Install Docker & Docker Compose if missing.
-3. Resolve any Ubuntu/Debian port 53 conflicts (`systemd-resolved`).
-4. Configure firewall rules (`UFW`).
-5. Launch both containers with an isolated bridge network.
+The script automatically:
+1. Enables Linux kernel packet forwarding (`net.ipv4.ip_forward = 1`).
+2. Installs Docker & Docker Compose if missing.
+3. Resolves Ubuntu/Debian port 53 conflicts (`systemd-resolved`).
+4. Configures host firewall rules (`UFW`).
+5. Launches both containers on an isolated Docker bridge network.
 
 ---
 
 ## 🌐 Web Dashboards
 
-Once installed, two dashboards are available:
+Once installed, two web dashboards are available:
 
 | Dashboard | URL | Purpose |
 |---|---|---|
-| **WireGuard Web UI** | `http://<YOUR_VPS_IP>:51821` | Create clients, scan QR codes, download `.conf` files |
-| **AdGuard Home Wizard** | `http://<YOUR_VPS_IP>:3000` | Initial 1-time setup wizard |
+| **WireGuard Web UI** | `http://<YOUR_VPS_IP>:51821` | Create device clients, scan QR codes, download `.conf` files |
+| **AdGuard Home Wizard** | `http://<YOUR_VPS_IP>:3000` | Initial 1-time setup wizard (set admin username & password) |
 | **AdGuard Home Dashboard**| `http://<YOUR_VPS_IP>:8080` | Parental controls, blocklists, live query log, SafeSearch |
 
 ---
@@ -104,14 +128,14 @@ Once installed, two dashboards are available:
 ## 📱 Connecting Your Devices
 
 ### 1. Android Phones & Tablets
-1. Open the WireGuard Web UI (`http://<YOUR_VPS_IP>:51821`) on your computer or phone.
-2. Click **+ New Client** (name it e.g., `My-Android`).
+1. Open the WireGuard Web UI (`http://<YOUR_VPS_IP>:51821`) in your browser.
+2. Click **+ New Client** (e.g., name it `My-Android`).
 3. Click the **QR Code** icon.
 4. Install the free [WireGuard app from Google Play](https://play.google.com/store/apps/details?id=com.wireguard.android) or [F-Droid](https://f-droid.org/packages/com.wireguard.android/).
-5. Open the app, tap `+` ➡️ **Scan from QR code** ➡️ Name it and turn it **ON**.
+5. Open the app, tap `+` ➡️ **Scan from QR code** ➡️ Give it a name and toggle it **ON**.
 
 > **🔒 Android Anti-Bypass (Parental Lockdown)**:
-> In Android **Settings** ➡️ **Network & internet** ➡️ **VPN** ➡️ tap the gear next to WireGuard ➡️ Turn on **Always-on VPN** and **Block connections without VPN**. If the VPN is toggled off, internet access is completely blocked!
+> In Android **Settings** ➡️ **Network & internet** ➡️ **VPN** ➡️ tap the gear next to WireGuard ➡️ Turn on **Always-on VPN** and **Block connections without VPN**. If the VPN is turned off, internet access is severed automatically.
 
 ### 2. iPhone & iPad (iOS)
 1. Open `http://<YOUR_VPS_IP>:51821` and click **+ New Client** (e.g., `My-iPhone`).
@@ -119,10 +143,10 @@ Once installed, two dashboards are available:
 3. Open the app, tap **Add a tunnel** ➡️ **Create from QR code** ➡️ Scan and connect.
 
 ### 3. Windows & macOS Laptops
-1. In `http://<YOUR_VPS_IP>:51821`, click **+ New Client** (e.g., `My-MacBook`).
+1. In `http://<YOUR_VPS_IP>:51821`, click **+ New Client** (e.g., `My-Laptop`).
 2. Click the **Download** icon to save the `.conf` file.
 3. Download the official [WireGuard client for Windows or Mac](https://www.wireguard.com/install/).
-4. Click **Import tunnel(s) from file**, select the `.conf` file, and click **Activate**.
+4. Click **Import tunnel(s) from file**, select the downloaded `.conf` file, and click **Activate**.
 
 ### 4. Linux Desktops & Servers
 ```bash
@@ -141,7 +165,7 @@ Manage all restriction rules in the AdGuard Home dashboard (`http://<YOUR_VPS_IP
 Go to **Filters** ➡️ **Blocked services**:
 - Toggle off any service with a single click:
   - *TikTok, YouTube, Discord, Roblox, Steam, Netflix, Instagram, Facebook, Reddit, Twitch, Twitter/X, etc.*
-- Click **Save**. The apps and their websites stop working immediately across all connected devices.
+- Click **Save**. The apps and websites stop working immediately across all connected devices.
 
 ### 2. Custom Domain Blocking
 Go to **Filters** ➡️ **Custom filtering rules**:
@@ -166,7 +190,7 @@ Go to **Query Log** to view real-time requests from your devices, see what was b
 
 ## ☁️ Cloud Firewall / Security Group Notice
 
-If your VPS provider has an external firewall (AWS Security Groups, Oracle Cloud VCN, Google Cloud, Azure, DigitalOcean Cloud Firewall), ensure the following inbound ports are allowed:
+If your VPS provider uses an external firewall (AWS Security Groups, Oracle Cloud VCN, Google Cloud, Azure, DigitalOcean Cloud Firewall), ensure the following inbound ports are open:
 
 | Port | Protocol | Usage | Required |
 |---|---|---|---|
@@ -179,7 +203,7 @@ If your VPS provider has an external firewall (AWS Security Groups, Oracle Cloud
 
 ## 🛠️ Management Commands
 
-Run these inside your `proxy-server` directory:
+Run these inside the project directory:
 
 ```bash
 # View container status
@@ -197,6 +221,49 @@ docker compose down
 # Update to latest versions
 docker compose pull && docker compose up -d
 ```
+
+---
+
+## ❓ Troubleshooting & FAQ
+
+<details>
+<summary><strong>1. Port 53 is already in use by systemd-resolved</strong></summary>
+
+On Ubuntu and Debian systems, `systemd-resolved` binds to port 53 by default. `setup.sh` handles this automatically, but if you need to fix it manually:
+```bash
+sudo sed -i 's/#DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
+sudo sed -i 's/DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
+sudo systemctl restart systemd-resolved
+```
+</details>
+
+<details>
+<summary><strong>2. Connected to WireGuard, but have no Internet access</strong></summary>
+
+Ensure IPv4 packet forwarding is enabled on your host VPS:
+```bash
+sudo sysctl net.ipv4.ip_forward
+# If it returns 0, enable it:
+echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.d/99-wireguard-forward.conf
+sudo sysctl -p /etc/sysctl.d/99-wireguard-forward.conf
+```
+Also verify that UDP port `51820` is open in your cloud provider's firewall / security group.
+</details>
+
+<details>
+<summary><strong>3. How do I change upstream DNS servers?</strong></summary>
+
+In the AdGuard Home dashboard (`http://<YOUR_VPS_IP>:8080`), go to **Settings** ➡️ **DNS settings** and configure your preferred upstream resolvers (e.g., Quad9 `tls://dns.quad9.net` or Cloudflare `https://cloudflare-dns.com/dns-query`).
+</details>
+
+<details>
+<summary><strong>4. How do I back up my configuration?</strong></summary>
+
+All WireGuard keys, client configurations, and AdGuard blocking rules are stored in the local directories `wireguard-data/`, `adguard-conf/`, and `adguard-work/`. Simply back up these folders or create a tarball:
+```bash
+tar -czvf proxy-backup.tar.gz .env wireguard-data adguard-conf adguard-work
+```
+</details>
 
 ---
 
