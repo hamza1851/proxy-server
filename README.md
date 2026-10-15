@@ -132,9 +132,15 @@ The custom cockpit (`http://<YOUR_VPS_IP>:8888`) delivers a full-fledged cyberpu
 - 🟢 **Matrix Rain & CRT Scanlines**: Live animated digital rain backdrop and retro CRT scanline shader with instant toggle.
 - 🔊 **Tactical Web Audio Synthesizer**: Synthesized mechanical clicks, sonar beeps, and alarm klaxons directly in browser without external sound files.
 - 🚨 **Emergency Master Lockdown (Killswitch)**: Single-click instant killswitch that terminates all outbound resolution and sinkholes all traffic in an emergency.
-- 🎯 **Target Lockdown Matrix**: 1-click toggles with glowing status indicators to restrict TikTok, YouTube, Instagram, Discord, Roblox, Steam, Netflix, and Adult Content.
+- 📱 **Per-Device Target Restrictions**: Select any registered phone, tablet, or laptop and restrict services (TikTok, YouTube, Discord, Roblox, Steam, etc.) or domains strictly for *that specific device* without affecting other family members or work machines.
+- ⚡ **Device Blacklist & Bypass (Revert to Carrier/ISP)**: 1-click toggle to detach any device from the proxy tunnel. When bypassed, the device's traffic immediately routes normally through their mobile cellular carrier or local internet provider.
+- 🎨 **Custom Splash / Block Page with Live Phone Mockup**:
+  - Whenever a device accesses a restricted website, serve them a custom page instead of an empty error.
+  - Customize the **Emoji** (e.g. `⛔`, `🛑`, `👾`), **Heading**, **Explanation/Reasoning Text**, and **Optional Banner Image**.
+  - Includes a real-time **interactive phone screen mockup** inside the dashboard that updates as you type.
+  - Togglable per user / per device!
 - 📡 **Live DNS Intercept Stream**: Real-time terminal log displaying connecting client IPs, requested domains, and 1-click `[ BAN ]` buttons inside the table.
-- ⌨️ **Interactive Bottom CLI Terminal**: Type commands (`help`, `block <domain>`, `unblock <domain>`, `stats`, `lockdown`, `cls`) directly in the hacker terminal shell.
+- ⌨️ **Interactive Bottom CLI Terminal**: Type commands (`help`, `devices`, `bypass <id>`, `block <domain>`, `unblock <domain>`, `stats`, `lockdown`, `cls`) directly in the hacker terminal shell.
 
 ---
 
