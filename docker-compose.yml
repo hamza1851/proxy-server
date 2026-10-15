@@ -63,6 +63,8 @@ services:
       - PORT=8000
       - ADGUARD_HOST=http://10.2.0.100:80
       - WG_HOST=http://10.2.0.200:51821
+      - VPS_PUBLIC_IP=${VPS_PUBLIC_IP}
+      - WG_PORT=${WG_PORT:-51820}
       - MONGODB_URI=${MONGODB_URI}
       - PANEL_ADMIN_USER=${PANEL_ADMIN_USER:-admin}
       - PANEL_ADMIN_PASSWORD=${PANEL_ADMIN_PASSWORD:-ProxyMaster2025!}
