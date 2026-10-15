@@ -10,7 +10,9 @@ import {
   TabType,
   AuthResponse,
   SystemConfigItem,
-  RuntimeConfig
+  RuntimeConfig,
+  MonitoringStorageStats,
+  PurgeResult
 } from '../types/index.js';
 import { ApiClient } from '../services/apiClient.js';
 import { useAudio } from '../hooks/useAudio.js';
@@ -56,6 +58,10 @@ interface DashboardContextType {
   saveConfig: (item: Partial<SystemConfigItem>) => Promise<void>;
   deleteConfig: (key: string) => Promise<void>;
   refreshConfigs: () => Promise<void>;
+  monitoringStorageStats: MonitoringStorageStats | null;
+  refreshMonitoringStats: () => Promise<void>;
+  purgeDeviceLogs: (deviceId: string, olderThanDays?: number) => Promise<PurgeResult>;
+  purgeGlobalLogs: (options: { deviceId?: string; clientIp?: string; olderThanDays?: number }) => Promise<PurgeResult>;
   refreshAll: () => Promise<void>;
   playBeep: (freq?: number, duration?: number, type?: OscillatorType) => void;
 }
@@ -90,6 +96,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [customWebsites, setCustomWebsites] = useState<CustomWebsiteRule[]>([]);
   const [systemConfigs, setSystemConfigs] = useState<SystemConfigItem[]>([]);
   const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
+  const [monitoringStorageStats, setMonitoringStorageStats] = useState<MonitoringStorageStats | null>(null);
   const [activeTab, setActiveTabState] = useState<TabType>(getTabFromHash);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
@@ -214,6 +221,16 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [isAuthenticated]);
 
+  const refreshMonitoringStats = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const stats = await ApiClient.getMonitoringStats();
+      setMonitoringStorageStats(stats);
+    } catch {
+      // Keep resilient
+    }
+  }, [isAuthenticated]);
+
   const refreshAll = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
@@ -223,7 +240,8 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         refreshQueries(),
         refreshDevices(),
         refreshServices(),
-        refreshConfigs()
+        refreshConfigs(),
+        refreshMonitoringStats()
       ]);
       setError(null);
     } catch {
@@ -231,7 +249,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, refreshTelemetry, refreshQueries, refreshDevices, refreshServices, refreshConfigs]);
+  }, [isAuthenticated, refreshTelemetry, refreshQueries, refreshDevices, refreshServices, refreshConfigs, refreshMonitoringStats]);
 
   // Initial load
   useEffect(() => {
@@ -353,6 +371,32 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await refreshConfigs();
   };
 
+  const purgeDeviceLogs = async (deviceId: string, olderThanDays?: number): Promise<PurgeResult> => {
+    playBeep(920, 0.08);
+    const result = await ApiClient.purgeDeviceMonitoring(deviceId, olderThanDays);
+    await refreshMonitoringStats();
+    if (selectedDeviceId === deviceId) {
+      await refreshMonitoring(deviceId);
+    }
+    await refreshQueries();
+    return result;
+  };
+
+  const purgeGlobalLogs = async (options: {
+    deviceId?: string;
+    clientIp?: string;
+    olderThanDays?: number;
+  }): Promise<PurgeResult> => {
+    playBeep(920, 0.08);
+    const result = await ApiClient.purgeGlobalMonitoring(options);
+    await refreshMonitoringStats();
+    if (selectedDeviceId) {
+      await refreshMonitoring(selectedDeviceId);
+    }
+    await refreshQueries();
+    return result;
+  };
+
   return (
     <DashboardContext.Provider
       value={{
@@ -392,6 +436,10 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         saveConfig,
         deleteConfig,
         refreshConfigs,
+        monitoringStorageStats,
+        refreshMonitoringStats,
+        purgeDeviceLogs,
+        purgeGlobalLogs,
         refreshAll,
         playBeep
       }}

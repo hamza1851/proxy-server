@@ -9,6 +9,7 @@ import { LoginView } from './components/auth/LoginView.js';
 import { TelemetryPanel } from './components/global/TelemetryPanel.js';
 import { TargetMatrix } from './components/global/TargetMatrix.js';
 import { LiveStreamTable } from './components/global/LiveStreamTable.js';
+import { GlobalRetentionControl } from './components/global/GlobalRetentionControl.js';
 import { DeviceRoster } from './components/devices/DeviceRoster.js';
 import { DeviceMonitoring } from './components/devices/DeviceMonitoring.js';
 import { DeviceServiceMatrix } from './components/devices/DeviceServiceMatrix.js';
@@ -54,6 +55,7 @@ export const AppContent: React.FC = () => {
           {activeTab === 'global' && (
             <div className="space-y-6 animate-fadeIn">
               <TelemetryPanel />
+              <GlobalRetentionControl />
               <TargetMatrix />
               <LiveStreamTable />
             </div>

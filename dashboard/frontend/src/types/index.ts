@@ -130,3 +130,27 @@ export interface AuthResponse {
   user?: OperatorUser;
   error?: string;
 }
+
+export interface DeviceStorageStat {
+  deviceId: string;
+  deviceName: string;
+  clientIp: string;
+  recordCount: number;
+}
+
+export interface MonitoringStorageStats {
+  totalRecords: number;
+  retentionDays: number;
+  oldestRecord: string | null;
+  newestRecord: string | null;
+  expiredRecordsCount: number;
+  devices: DeviceStorageStat[];
+}
+
+export interface PurgeResult {
+  success: boolean;
+  deletedCount: number;
+  target: string;
+  cutoffDate: string | null;
+  message: string;
+}

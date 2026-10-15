@@ -8,7 +8,9 @@ import {
   AuthResponse,
   OperatorUser,
   SystemConfigItem,
-  RuntimeConfig
+  RuntimeConfig,
+  MonitoringStorageStats,
+  PurgeResult
 } from '../types/index.js';
 
 const API_BASE = '/api';
@@ -206,6 +208,28 @@ export class ApiClient {
   public static async deleteConfig(key: string): Promise<{ success: boolean; runtime: RuntimeConfig }> {
     return this.request<{ success: boolean; runtime: RuntimeConfig }>(`/config/${encodeURIComponent(key)}`, {
       method: 'DELETE'
+    });
+  }
+
+  public static async getMonitoringStats(): Promise<MonitoringStorageStats> {
+    return this.request<MonitoringStorageStats>('/monitoring/stats');
+  }
+
+  public static async purgeGlobalMonitoring(params: {
+    deviceId?: string;
+    clientIp?: string;
+    olderThanDays?: number;
+  }): Promise<PurgeResult> {
+    return this.request<PurgeResult>('/monitoring/cleanup', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    });
+  }
+
+  public static async purgeDeviceMonitoring(deviceId: string, olderThanDays?: number): Promise<PurgeResult> {
+    return this.request<PurgeResult>(`/devices/${deviceId}/monitoring/cleanup`, {
+      method: 'POST',
+      body: JSON.stringify({ olderThanDays })
     });
   }
 }
