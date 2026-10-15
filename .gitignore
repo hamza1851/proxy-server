@@ -8,6 +8,9 @@ wireguard-data/
 adguard-work/
 adguard-conf/
 
+# MongoDB data directory
+mongodb-data/
+
 # OS and Editor files
 .DS_Store
 Thumbs.db

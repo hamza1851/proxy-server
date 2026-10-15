@@ -5,6 +5,39 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Automatically load .env file if present
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(__dirname, '../../../.env'),
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(process.cwd(), '../.env')
+];
+for (const envPath of envCandidates) {
+  if (fs.existsSync(envPath)) {
+    try {
+      if (typeof (process as any).loadEnvFile === 'function') {
+        (process as any).loadEnvFile(envPath);
+      } else {
+        const content = fs.readFileSync(envPath, 'utf-8');
+        content.split('\n').forEach((line) => {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith('#')) {
+            const eqIdx = trimmed.indexOf('=');
+            if (eqIdx > 0) {
+              const k = trimmed.slice(0, eqIdx).trim();
+              const v = trimmed.slice(eqIdx + 1).trim().replace(/^['"]|['"]$/g, '');
+              if (!process.env[k]) process.env[k] = v;
+            }
+          }
+        });
+      }
+    } catch {
+      // Keep resilient
+    }
+    break;
+  }
+}
+
 const resolveDataPath = (): string => {
   if (process.env.DATA_PATH) return process.env.DATA_PATH;
   const candidates = [

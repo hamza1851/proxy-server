@@ -3,8 +3,10 @@ import bcrypt from 'bcryptjs';
 import { config } from '../config/index.js';
 import { UserModel } from './models/User.js';
 import { DeviceModel } from './models/Device.js';
+import { GlobalRuleModel } from './models/GlobalRule.js';
 import { DeviceService } from '../services/deviceService.js';
 import { ConfigService } from '../services/configService.js';
+import { CleanupService } from '../services/cleanupService.js';
 
 let isConnected = false;
 
@@ -32,6 +34,12 @@ export async function connectDatabase(): Promise<boolean> {
 
     // Seed initial configs if empty
     await ConfigService.seedDefaults();
+
+    // Seed initial global rules if empty
+    await seedGlobalRules();
+
+    // Seed initial query telemetry records if empty
+    await CleanupService.ensureSeedData();
 
     mongoose.connection.on('disconnected', () => {
       isConnected = false;
@@ -80,5 +88,22 @@ async function seedDevices(): Promise<void> {
     }
   } catch (err) {
     console.error('[Database] Failed to seed devices:', err);
+  }
+}
+
+async function seedGlobalRules(): Promise<void> {
+  try {
+    const count = await GlobalRuleModel.countDocuments();
+    if (count === 0) {
+      const initialRules = [
+        { domain: 'tiktok.com', name: 'TikTok', category: 'Distraction', enabled: true },
+        { domain: 'instagram.com', name: 'Instagram', category: 'Social Feed', enabled: true },
+        { domain: 'doubleclick.net', name: 'Telemetry & Ads', category: 'Privacy Shields', enabled: true }
+      ];
+      await GlobalRuleModel.insertMany(initialRules);
+      console.log(`[Database] Seeded ${initialRules.length} default universal rules.`);
+    }
+  } catch (err) {
+    console.error('[Database] Failed to seed global rules:', err);
   }
 }
