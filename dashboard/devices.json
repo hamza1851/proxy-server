@@ -1,0 +1,65 @@
+[
+  {
+    "id": "dev_phone_1",
+    "name": "Kid's Android Phone",
+    "ip": "10.8.0.2",
+    "mac": "",
+    "status": "bypassed",
+    "blockedServices": [
+      "tiktok",
+      "roblox",
+      "adult"
+    ],
+    "customRules": [
+      "gambling-site.com",
+      "badgames.net"
+    ],
+    "blockPageEnabled": true,
+    "blockPageConfig": {
+      "emoji": "⛔",
+      "heading": "ACCESS RESTRICTED: STUDY MODE ACTIVE",
+      "message": "Access to this service has been paused by network admin. Please complete your tasks first!",
+      "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=700&auto=format&fit=crop&q=80",
+      "allowRequestBypass": true
+    }
+  },
+  {
+    "id": "dev_laptop_1",
+    "name": "Primary Work Laptop",
+    "ip": "10.8.0.3",
+    "mac": "",
+    "status": "active",
+    "blockedServices": [],
+    "customRules": [
+      "doubleclick.net"
+    ],
+    "blockPageEnabled": false,
+    "blockPageConfig": {
+      "emoji": "🛡️",
+      "heading": "MALICIOUS TARGET SINKHOLED",
+      "message": "This domain was blocked by personal threat protection.",
+      "imageUrl": "",
+      "allowRequestBypass": false
+    }
+  },
+  {
+    "id": "dev_tab_1",
+    "name": "Home Android Tablet",
+    "ip": "10.8.0.4",
+    "mac": "",
+    "status": "active",
+    "blockedServices": [
+      "adult",
+      "netflix"
+    ],
+    "customRules": [],
+    "blockPageEnabled": true,
+    "blockPageConfig": {
+      "emoji": "🛑",
+      "heading": "SCREEN TIME LIMIT REACHED",
+      "message": "Streaming services are restricted until evening hours.",
+      "imageUrl": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=700&auto=format&fit=crop&q=80",
+      "allowRequestBypass": true
+    }
+  }
+]
