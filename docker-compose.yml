@@ -63,6 +63,10 @@ services:
       - PORT=8000
       - ADGUARD_HOST=http://10.2.0.100:80
       - WG_HOST=http://10.2.0.200:51821
+      - MONGODB_URI=${MONGODB_URI}
+      - PANEL_ADMIN_USER=${PANEL_ADMIN_USER:-admin}
+      - PANEL_ADMIN_PASSWORD=${PANEL_ADMIN_PASSWORD:-ProxyMaster2025!}
+      - JWT_SECRET=${JWT_SECRET:-cyber-proxy-super-secret-key-2025}
     networks:
       proxy_net:
         ipv4_address: 10.2.0.50
