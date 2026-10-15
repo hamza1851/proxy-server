@@ -1,0 +1,87 @@
+/* ========================================================
+   CYBERPUNK SCSS ENHANCEMENTS & SCANLINES
+   ======================================================== */
+
+.crt-scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 6px 100%;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+}
+
+.cyber-panel-bracket {
+  position: relative;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--border-color, #00f0ff);
+  }
+  &::before {
+    top: -2px;
+    left: -2px;
+    border-right: none;
+    border-bottom: none;
+  }
+  &::after {
+    bottom: -2px;
+    right: -2px;
+    border-left: none;
+    border-top: none;
+  }
+}
+
+.glitch-title {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.phone-mockup-frame {
+  width: 290px;
+  height: 520px;
+  background: #000;
+  border: 4px solid #1f2937;
+  border-radius: 36px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 240, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 12px;
+
+  .phone-notch {
+    width: 90px;
+    height: 14px;
+    background: #1f2937;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    margin: 0 auto 10px auto;
+  }
+
+  .phone-screen {
+    flex: 1;
+    background: radial-gradient(circle at center, #111827 0%, #06090e 100%);
+    border-radius: 24px;
+    padding: 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+}
+
+@keyframes float-emoji {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animated-float {
+  animation: float-emoji 2.5s ease-in-out infinite;
+}
