@@ -40,9 +40,20 @@ const DEFAULT_DEVICES = [
     name: "Kid's Android Phone",
     ip: '10.8.0.2',
     mac: '',
-    status: 'active', // 'active' (proxy encrypted) or 'bypassed' (normal carrier ISP)
+    status: 'active', // 'active' (proxy encrypted), 'bypassed' (normal carrier), or 'paused' (curfew)
     blockedServices: ['tiktok', 'roblox', 'adult'],
     customRules: ['gambling-site.com', 'badgames.net'],
+    safeSearch: true,
+    parentalFilter: true,
+    curfew: { active: false, pausedUntil: null, reason: '' },
+    stats: { totalQueries: 4120, blockedQueries: 1240, blockRate: '30.1%' },
+    topDomains: [
+      { domain: 'google.com', count: 245, status: 'ALLOWED' },
+      { domain: 'tiktok.com', count: 188, status: 'BLOCKED' },
+      { domain: 'youtube.com', count: 125, status: 'ALLOWED' },
+      { domain: 'roblox.com', count: 92, status: 'BLOCKED' },
+      { domain: 'wikipedia.org', count: 64, status: 'ALLOWED' },
+    ],
     blockPageEnabled: true,
     blockPageConfig: {
       emoji: '⛔',
@@ -60,6 +71,17 @@ const DEFAULT_DEVICES = [
     status: 'active',
     blockedServices: [],
     customRules: ['doubleclick.net'],
+    safeSearch: false,
+    parentalFilter: false,
+    curfew: { active: false, pausedUntil: null, reason: '' },
+    stats: { totalQueries: 8930, blockedQueries: 412, blockRate: '4.6%' },
+    topDomains: [
+      { domain: 'github.com', count: 480, status: 'ALLOWED' },
+      { domain: 'stackoverflow.com', count: 310, status: 'ALLOWED' },
+      { domain: 'aws.amazon.com', count: 195, status: 'ALLOWED' },
+      { domain: 'doubleclick.net', count: 87, status: 'BLOCKED' },
+      { domain: 'google.com', count: 160, status: 'ALLOWED' },
+    ],
     blockPageEnabled: false,
     blockPageConfig: {
       emoji: '🛡️',
@@ -77,6 +99,16 @@ const DEFAULT_DEVICES = [
     status: 'active',
     blockedServices: ['adult', 'netflix'],
     customRules: [],
+    safeSearch: true,
+    parentalFilter: true,
+    curfew: { active: false, pausedUntil: null, reason: '' },
+    stats: { totalQueries: 2840, blockedQueries: 620, blockRate: '21.8%' },
+    topDomains: [
+      { domain: 'youtube.com', count: 320, status: 'ALLOWED' },
+      { domain: 'netflix.com', count: 140, status: 'BLOCKED' },
+      { domain: 'khanacademy.org', count: 110, status: 'ALLOWED' },
+      { domain: 'duolingo.com', count: 85, status: 'ALLOWED' },
+    ],
     blockPageEnabled: true,
     blockPageConfig: {
       emoji: '🛑',
@@ -288,8 +320,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 3. Update device (Per-Device Rules, Blocklist, Block Page Settings)
-  if (pathname.startsWith('/api/devices/') && !pathname.endsWith('/bypass') && (req.method === 'PUT' || req.method === 'POST')) {
-    const id = pathname.replace('/api/devices/', '');
+  if (pathname.match(/^\/api\/devices\/([^/]+)$/) && (req.method === 'PUT' || req.method === 'POST')) {
+    const match = pathname.match(/^\/api\/devices\/([^/]+)$/);
+    const id = match[1];
     let body = '';
     req.on('data', (c) => (body += c));
     req.on('end', async () => {
@@ -338,7 +371,51 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  // 5. Delete device
+  // 5. Freeze / Curfew timed lockout for specific device
+  if (pathname.match(/^\/api\/devices\/([^/]+)\/freeze$/) && req.method === 'POST') {
+    const match = pathname.match(/^\/api\/devices\/([^/]+)\/freeze$/);
+    const id = match[1];
+    const index = devices.findIndex((d) => d.id === id);
+    if (index === -1) return sendJSON(404, { error: 'Device not found' });
+
+    let body = '';
+    req.on('data', (c) => (body += c));
+    req.on('end', async () => {
+      try {
+        const { durationMinutes, reason } = JSON.parse(body || '{}');
+        if (durationMinutes > 0) {
+          devices[index].status = 'paused';
+          devices[index].curfew = {
+            active: true,
+            pausedUntil: Date.now() + durationMinutes * 60 * 1000,
+            reason: reason || 'Parental Curfew Active',
+          };
+          // Inject drop rule in AdGuard
+          await makeRequest(`${ADGUARD_HOST}/control/clients/update`, 'POST', {
+            name: devices[index].name,
+            data: { ids: [devices[index].ip], filtering_enabled: true, blocked_services: ['all'] },
+          });
+        } else {
+          devices[index].status = 'active';
+          devices[index].curfew = { active: false, pausedUntil: null, reason: '' };
+          await syncDeviceToAdGuard(devices[index]);
+        }
+        saveDevices(devices);
+        return sendJSON(200, {
+          success: true,
+          device: devices[index],
+          message: durationMinutes > 0
+            ? `⏸️ ${devices[index].name} FROZEN for ${durationMinutes} minutes (${reason || 'Curfew'})`
+            : `▶️ ${devices[index].name} UNFROZEN. Normal access restored.`,
+        });
+      } catch (e) {
+        return sendJSON(500, { error: e.message });
+      }
+    });
+    return;
+  }
+
+  // 6. Delete device
   if (pathname.startsWith('/api/devices/') && req.method === 'DELETE') {
     const id = pathname.replace('/api/devices/', '');
     devices = devices.filter((d) => d.id !== id);
@@ -377,24 +454,32 @@ const server = http.createServer(async (req, res) => {
       stats: stats,
       devicesCount: devices.length,
       bypassedCount: devices.filter((d) => d.status === 'bypassed').length,
+      pausedCount: devices.filter((d) => d.status === 'paused').length,
       blockedList: Array.from(localBlockedDomains),
       lockdown: isLockdownActive,
     });
   }
 
   if (pathname === '/api/queries' && req.method === 'GET') {
-    const adgLogs = await makeRequest(`${ADGUARD_HOST}/control/querylog?limit=25`);
+    const clientFilter = reqUrl.searchParams.get('client') || '';
+    const adgLogs = await makeRequest(`${ADGUARD_HOST}/control/querylog?limit=50`);
+    let queryList = mockQueries;
+
     if (adgLogs.status === 200 && adgLogs.data && Array.isArray(adgLogs.data.data)) {
-      const formatted = adgLogs.data.data.map((item) => ({
+      queryList = adgLogs.data.data.map((item) => ({
         time: new Date(item.time).toLocaleTimeString(),
         client: item.client || item.client_proto || '10.8.0.x',
         domain: item.question ? item.question.name : 'unknown',
         status: item.reason && item.reason !== 'NotFilteredNotFound' ? 'BLOCKED' : 'ALLOWED',
         reason: item.reason || 'Normal Query',
       }));
-      return sendJSON(200, { queries: formatted });
     }
-    return sendJSON(200, { queries: mockQueries });
+
+    if (clientFilter) {
+      queryList = queryList.filter((q) => q.client.toLowerCase().includes(clientFilter.toLowerCase()));
+    }
+
+    return sendJSON(200, { queries: queryList });
   }
 
   if (pathname === '/api/block' && req.method === 'POST') {

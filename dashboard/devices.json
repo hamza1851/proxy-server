@@ -4,7 +4,7 @@
     "name": "Kid's Android Phone",
     "ip": "10.8.0.2",
     "mac": "",
-    "status": "bypassed",
+    "status": "active",
     "blockedServices": [
       "tiktok",
       "roblox",
@@ -21,6 +21,11 @@
       "message": "Access to this service has been paused by network admin. Please complete your tasks first!",
       "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=700&auto=format&fit=crop&q=80",
       "allowRequestBypass": true
+    },
+    "curfew": {
+      "active": false,
+      "pausedUntil": null,
+      "reason": ""
     }
   },
   {

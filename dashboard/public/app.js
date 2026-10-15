@@ -235,6 +235,29 @@ function bindUIEvents() {
   const bypassBtn = document.getElementById('bypass-toggle-btn');
   bypassBtn.addEventListener('click', toggleDeviceBypass);
 
+  // Curfew / Freeze Buttons
+  document.querySelectorAll('.freeze-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const minutes = parseInt(btn.dataset.minutes, 10);
+      const reason = btn.dataset.reason;
+      freezeDevice(minutes, reason);
+    });
+  });
+
+  const unfreezeBtn = document.getElementById('unfreeze-btn');
+  if (unfreezeBtn) {
+    unfreezeBtn.addEventListener('click', () => freezeDevice(0, ''));
+  }
+
+  // Global Device Stream Filter Dropdown
+  const globalDevFilter = document.getElementById('global-device-filter');
+  if (globalDevFilter) {
+    globalDevFilter.addEventListener('change', (e) => {
+      audio.playBeep(650);
+      fetchQueries(e.target.value);
+    });
+  }
+
   // Per-Device Service Nodes
   document.querySelectorAll('.dev-target').forEach((node) => {
     node.addEventListener('click', () => toggleDeviceService(node.dataset.target, node));
@@ -357,6 +380,47 @@ function renderActiveDeviceView() {
     bypassText.textContent = '⚡ BYPASS PROXY (USE NORMAL CARRIER)';
   }
 
+  // Populate Global Device Filter Dropdown if not populated
+  const globalFilterSelect = document.getElementById('global-device-filter');
+  if (globalFilterSelect && globalFilterSelect.options.length <= 1) {
+    devices.forEach((d) => {
+      const opt = document.createElement('option');
+      opt.value = d.ip;
+      opt.textContent = `${d.name} [${d.ip}]`;
+      globalFilterSelect.appendChild(opt);
+    });
+  }
+
+  // Render User Monitoring Stats
+  const stats = dev.stats || { totalQueries: 0, blockedQueries: 0, blockRate: '0%' };
+  document.getElementById('user-stat-queries').textContent = Number(stats.totalQueries).toLocaleString();
+  document.getElementById('user-stat-blocked').textContent = Number(stats.blockedQueries).toLocaleString();
+  document.getElementById('user-stat-rate').textContent = `EFFICIENCY: ${stats.blockRate}`;
+
+  const statusEl = document.getElementById('user-stat-status');
+  const statusSubEl = document.getElementById('user-stat-status-sub');
+  if (dev.status === 'paused') {
+    statusEl.textContent = '⏸️ FROZEN (CURFEW)';
+    statusEl.style.color = 'var(--neon-red)';
+    statusSubEl.textContent = dev.curfew?.reason || 'CURFEW ACTIVE';
+  } else if (dev.status === 'bypassed') {
+    statusEl.textContent = '⚡ BYPASSED';
+    statusEl.style.color = 'var(--neon-amber)';
+    statusSubEl.textContent = 'ROUTING DIRECT VIA CARRIER';
+  } else {
+    statusEl.textContent = 'ONLINE';
+    statusEl.style.color = 'var(--neon-green)';
+    statusSubEl.textContent = 'ENCRYPTED & PROTECTED';
+  }
+
+  document.getElementById('user-stat-safesearch').textContent = dev.safeSearch !== false ? 'ENFORCED' : 'OFF';
+
+  // Render Top Domains for this user
+  renderUserTopDomains(dev.topDomains || []);
+
+  // Render User Specific Query Stream
+  renderUserQueries(dev);
+
   // Per-Device Service Targets
   const blockedServices = dev.blockedServices || [];
   document.querySelectorAll('.dev-target').forEach((node) => {
@@ -388,6 +452,90 @@ function renderActiveDeviceView() {
 
   // Update Live Preview Tab Link
   document.getElementById('preview-tab-btn').href = `/blocked?client=${dev.ip}`;
+}
+
+// Render Top Domains
+function renderUserTopDomains(domains) {
+  const container = document.getElementById('user-top-domains');
+  if (!container) return;
+
+  if (!domains || domains.length === 0) {
+    container.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No recent domain telemetry for this user.</span>';
+    return;
+  }
+
+  container.innerHTML = domains
+    .map((d) => {
+      const isBlocked = d.status === 'BLOCKED';
+      const badge = isBlocked
+        ? `<span class="status-badge blocked">BLOCKED</span>`
+        : `<span class="status-badge allowed">ALLOWED</span>`;
+      return `
+      <div class="domain-row">
+        <span class="domain-name">${escapeHtml(d.domain)}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="domain-hits">${d.count} hits</span>
+          ${badge}
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+}
+
+// Render User Queries Stream
+function renderUserQueries(dev) {
+  const tbody = document.getElementById('user-stream-tbody');
+  if (!tbody) return;
+
+  const userQueries = allQueries.filter((q) => q.client.includes(dev.ip) || q.client.includes(dev.name));
+  if (userQueries.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="loading-row">NO RECENT QUERIES LOGGED FOR ${escapeHtml(dev.name)}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = userQueries.slice(0, 8).map((q) => {
+    const isBlocked = q.status === 'BLOCKED';
+    const badgeClass = isBlocked ? 'blocked' : 'allowed';
+    const actionBtn = isBlocked
+      ? `<span style="color:var(--text-dim)">DROPPED</span>`
+      : `<button class="quick-ban-btn" onclick="addDeviceCustomRule('${escapeHtml(q.domain)}')">[ BLOCK ]</button>`;
+
+    return `
+      <tr>
+        <td style="color:var(--text-muted)">${escapeHtml(q.time)}</td>
+        <td style="color:#fff; font-weight:bold">${escapeHtml(q.domain)}</td>
+        <td><span class="status-badge ${badgeClass}">${q.status}</span></td>
+        <td>${actionBtn}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Timed Curfew / Freeze Control
+async function freezeDevice(durationMinutes, reason) {
+  const dev = getActiveDevice();
+  if (!dev) return;
+
+  if (durationMinutes > 0) {
+    audio.playAlarm();
+  } else {
+    audio.playBeep(700);
+  }
+
+  try {
+    const res = await fetch(`/api/devices/${dev.id}/freeze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ durationMinutes, reason }),
+    });
+    const data = await res.json();
+    cliPrint(`[CURFEW] ${data.message}`, durationMinutes > 0 ? 'error' : 'success');
+    await fetchDevices();
+    await fetchTelemetry();
+  } catch {
+    cliPrint('[ERR] Failed to execute curfew action', 'error');
+  }
 }
 
 // Toggle Bypass for Active Device
