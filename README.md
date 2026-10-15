@@ -131,7 +131,14 @@ Once installed, your VPS hosts the following interfaces:
 The custom cockpit (`http://<YOUR_VPS_IP>:8888`) delivers a full-fledged cyberpunk command center:
 - 🟢 **Matrix Rain & CRT Scanlines**: Live animated digital rain backdrop and retro CRT scanline shader with instant toggle.
 - 🔊 **Tactical Web Audio Synthesizer**: Synthesized mechanical clicks, sonar beeps, and alarm klaxons directly in browser without external sound files.
-- 🚨 **Emergency Master Lockdown (Killswitch)**: Single-click instant killswitch that terminates all outbound resolution and sinkholes all traffic in an emergency.
+- 📊 **User-Level Monitoring & Telemetry**:
+  - Live query counter, blocked threat count, and blocking efficiency % calculated individually for each connected device.
+  - **Top Visited Domains by User**: Inspect the most requested websites for any specific child's phone, laptop, or tablet.
+  - **Dedicated User Intercept Stream**: Watch a filtered terminal feed showing only queries originating from a selected device.
+- ⏳ **Curfew & Instant Internet Freeze Controls**:
+  - 1-click timed internet freeze: `[ ⏸️ 30 MIN FREEZE ]`, `[ ⏸️ 1 HOUR FREEZE ]`, or `[ 🌙 BEDTIME LOCKDOWN ]`.
+  - Drops internet access strictly for that specific device without impacting anyone else on the network!
+  - `[ ▶️ RESTORE INTERNET ]` button restores access instantly.
 - 📱 **Per-Device Target Restrictions**: Select any registered phone, tablet, or laptop and restrict services (TikTok, YouTube, Discord, Roblox, Steam, etc.) or domains strictly for *that specific device* without affecting other family members or work machines.
 - ⚡ **Device Blacklist & Bypass (Revert to Carrier/ISP)**: 1-click toggle to detach any device from the proxy tunnel. When bypassed, the device's traffic immediately routes normally through their mobile cellular carrier or local internet provider.
 - 🎨 **Custom Splash / Block Page with Live Phone Mockup**:
@@ -139,7 +146,7 @@ The custom cockpit (`http://<YOUR_VPS_IP>:8888`) delivers a full-fledged cyberpu
   - Customize the **Emoji** (e.g. `⛔`, `🛑`, `👾`), **Heading**, **Explanation/Reasoning Text**, and **Optional Banner Image**.
   - Includes a real-time **interactive phone screen mockup** inside the dashboard that updates as you type.
   - Togglable per user / per device!
-- 📡 **Live DNS Intercept Stream**: Real-time terminal log displaying connecting client IPs, requested domains, and 1-click `[ BAN ]` buttons inside the table.
+- 📡 **Global Live DNS Intercept Stream with Device Filter**: Real-time terminal log with instant device filter dropdown (`ALL DEVICES`, `Kid's Phone`, `Work Laptop`, etc.) and 1-click `[ BAN ]` buttons.
 - ⌨️ **Interactive Bottom CLI Terminal**: Type commands (`help`, `devices`, `bypass <id>`, `block <domain>`, `unblock <domain>`, `stats`, `lockdown`, `cls`) directly in the hacker terminal shell.
 
 ---
