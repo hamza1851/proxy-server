@@ -71,7 +71,7 @@ export const TargetMatrix: React.FC = () => {
       </div>
 
       {/* Preset Service Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {GLOBAL_SERVICES.map((srv) => {
           const isBlocked = blockedServices.includes(srv.id);
 

@@ -49,24 +49,26 @@ export const AppContent: React.FC = () => {
       />
 
       {/* Main View Area guarded with ErrorBoundary */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6 relative z-10">
+      <main className="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-5 lg:px-8 py-5 space-y-5 relative z-10">
         <ErrorBoundary fallbackTitle="GLOBAL HUD COMPONENT FAULT">
           {/* GLOBAL HUD TAB */}
           {activeTab === 'global' && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-5 animate-fadeIn">
               <TelemetryPanel />
-              <GlobalRetentionControl />
-              <TargetMatrix />
+              <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5 items-start">
+                <TargetMatrix />
+                <GlobalRetentionControl />
+              </div>
               <LiveStreamTable />
             </div>
           )}
 
           {/* DEVICE OPS TAB */}
           {activeTab === 'devices' && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-5 animate-fadeIn">
               <DeviceRoster />
               <DeviceMonitoring />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <DeviceServiceMatrix />
                 <DeviceCustomRules />
               </div>
@@ -75,9 +77,9 @@ export const AppContent: React.FC = () => {
 
           {/* SPLASH STUDIO TAB */}
           {activeTab === 'splash' && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-5 animate-fadeIn">
               <DeviceRoster />
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                 <div className="lg:col-span-7">
                   <SplashDesigner />
                 </div>
@@ -90,7 +92,7 @@ export const AppContent: React.FC = () => {
 
           {/* CONFIG MATRIX TAB */}
           {activeTab === 'configs' && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-5 animate-fadeIn">
               <ConfigMatrix />
             </div>
           )}
@@ -102,7 +104,7 @@ export const AppContent: React.FC = () => {
 
       {/* Tactical Footer */}
       <footer className="border-t border-slate-900 bg-black/60 px-4 py-3 text-[11px] font-mono text-slate-500 relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="w-full max-w-[1920px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <span className="w-1.5 h-1.5 rounded-full bg-cyber-green" />
             <span>PROXY ENGINE // SECURE TLS 1.3 / DOH / WIREGUARD 51820</span>

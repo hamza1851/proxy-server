@@ -111,7 +111,7 @@ export const LiveStreamTable: React.FC = () => {
                         {entry.clientIp}
                       </div>
                     </td>
-                    <td className="py-2 px-3 font-mono text-cyber-cyan font-bold break-all max-w-xs">
+                    <td className="py-2 px-3 font-mono text-cyber-cyan font-bold truncate max-w-xs sm:max-w-sm lg:max-w-md xl:max-w-lg" title={entry.question}>
                       {entry.question}
                     </td>
                     <td className="py-2 px-3">
@@ -120,7 +120,7 @@ export const LiveStreamTable: React.FC = () => {
                         label={isBlocked ? 'DROPPED' : 'RESOLVED'}
                       />
                     </td>
-                    <td className="py-2 px-3 text-slate-400 text-[11px] truncate max-w-xs">
+                    <td className="py-2 px-3 text-slate-400 text-[11px] truncate max-w-xs lg:max-w-sm" title={entry.reason || 'Upstream Root'}>
                       {entry.reason || 'Upstream Root'}
                     </td>
                     <td className="py-2 px-3 text-slate-400 whitespace-nowrap">
