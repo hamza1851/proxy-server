@@ -7,6 +7,7 @@ import apiRouter from './routes/index.js';
 import { SplashController } from './controllers/splashController.js';
 import { authMiddleware } from './middleware/authMiddleware.js';
 import { connectDatabase } from './db/connection.js';
+import { CleanupService } from './services/cleanupService.js';
 
 export const app = express();
 
@@ -14,9 +15,14 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize MongoDB Connection (resilient with local fallback)
-connectDatabase().catch((err) => {
-  console.warn('[Database] Initial connection attempt error:', err);
-});
+connectDatabase()
+  .then(() => {
+    CleanupService.initScheduledRetentionJob();
+  })
+  .catch((err) => {
+    console.warn('[Database] Initial connection attempt error:', err);
+    CleanupService.initScheduledRetentionJob();
+  });
 
 // API endpoints (with auth protection)
 app.use('/api', authMiddleware as any, apiRouter);

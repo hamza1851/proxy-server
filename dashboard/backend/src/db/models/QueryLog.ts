@@ -3,6 +3,8 @@ import { QueryLogEntry } from '../../types/index.js';
 
 export interface IQueryLogDocument extends Document, Omit<QueryLogEntry, 'id'> {
   id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const QueryLogSchema = new Schema({
@@ -24,5 +26,8 @@ const QueryLogSchema = new Schema({
     }
   }
 });
+
+QueryLogSchema.index({ clientIp: 1, createdAt: -1 });
+QueryLogSchema.index({ createdAt: 1 });
 
 export const QueryLogModel = mongoose.models.QueryLog || mongoose.model<IQueryLogDocument>('QueryLog', QueryLogSchema);

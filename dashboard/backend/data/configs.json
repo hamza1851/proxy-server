@@ -70,5 +70,14 @@
     "isSecret": false,
     "isSystem": false,
     "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "DATA_RETENTION_DAYS",
+    "value": "90",
+    "category": "System",
+    "description": "Monitoring telemetry & DNS query logs retention period in days (default: 90 days / 3 months). Purges records older than this threshold during retention jobs.",
+    "isSecret": false,
+    "isSystem": false,
+    "updatedAt": "2026-10-15T10:15:34.237Z"
   }
 ]

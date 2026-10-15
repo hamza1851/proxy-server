@@ -91,6 +91,15 @@ const DEFAULT_CONFIGS: ConfigDTO[] = [
     isSecret: false,
     isSystem: false,
     updatedAt: new Date()
+  },
+  {
+    key: 'DATA_RETENTION_DAYS',
+    value: '90',
+    category: 'System',
+    description: 'Monitoring telemetry & DNS query logs retention period in days (default: 90 days / 3 months). Purges records older than this threshold during retention jobs.',
+    isSecret: false,
+    isSystem: false,
+    updatedAt: new Date()
   }
 ];
 

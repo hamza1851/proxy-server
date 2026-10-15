@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { SystemService } from '../services/systemService.js';
 import { AdGuardService } from '../services/adguardService.js';
 import { DeviceService } from '../services/deviceService.js';
+import { CleanupService } from '../services/cleanupService.js';
 
 let emergencyKillswitchActive = false;
 
@@ -40,6 +41,7 @@ export class TelemetryController {
   public static async getQueries(_req: Request, res: Response): Promise<void> {
     try {
       const queries = await AdGuardService.getQueryLog();
+      CleanupService.persistQueryEntries(queries).catch(() => {});
       res.json(queries);
     } catch (err) {
       console.error('[TelemetryController] Error:', err);
