@@ -113,15 +113,28 @@ The script automatically:
 
 ---
 
-## 🌐 Web Dashboards
+## 🌐 Web Dashboards & Command Center
 
-Once installed, two web dashboards are available:
+Once installed, your VPS hosts the following interfaces:
 
 | Dashboard | URL | Purpose |
 |---|---|---|
-| **WireGuard Web UI** | `http://<YOUR_VPS_IP>:51821` | Create device clients, scan QR codes, download `.conf` files |
+| **⚡ God-Level Cyber-Command HUD** | `http://<YOUR_VPS_IP>:8888` | **Unified hacker cockpit**: Matrix rain background, live intercept stream, instant master killswitch, 1-click service target matrix, interactive CLI terminal, and tactical audio feedback |
+| **WireGuard Web UI** | `http://<YOUR_VPS_IP>:51821` | Create device clients, scan QR codes, download `.conf` profiles |
+| **AdGuard Home Dashboard** | `http://<YOUR_VPS_IP>:8080` | Granular DNS settings, upstream DoH/DoT resolvers, custom blocklists |
 | **AdGuard Home Wizard** | `http://<YOUR_VPS_IP>:3000` | Initial 1-time setup wizard (set admin username & password) |
-| **AdGuard Home Dashboard**| `http://<YOUR_VPS_IP>:8080` | Parental controls, blocklists, live query log, SafeSearch |
+
+---
+
+## ⚡ God-Level Cyber-Command Features
+
+The custom cockpit (`http://<YOUR_VPS_IP>:8888`) delivers a full-fledged cyberpunk command center:
+- 🟢 **Matrix Rain & CRT Scanlines**: Live animated digital rain backdrop and retro CRT scanline shader with instant toggle.
+- 🔊 **Tactical Web Audio Synthesizer**: Synthesized mechanical clicks, sonar beeps, and alarm klaxons directly in browser without external sound files.
+- 🚨 **Emergency Master Lockdown (Killswitch)**: Single-click instant killswitch that terminates all outbound resolution and sinkholes all traffic in an emergency.
+- 🎯 **Target Lockdown Matrix**: 1-click toggles with glowing status indicators to restrict TikTok, YouTube, Instagram, Discord, Roblox, Steam, Netflix, and Adult Content.
+- 📡 **Live DNS Intercept Stream**: Real-time terminal log displaying connecting client IPs, requested domains, and 1-click `[ BAN ]` buttons inside the table.
+- ⌨️ **Interactive Bottom CLI Terminal**: Type commands (`help`, `block <domain>`, `unblock <domain>`, `stats`, `lockdown`, `cls`) directly in the hacker terminal shell.
 
 ---
 
@@ -195,6 +208,7 @@ If your VPS provider uses an external firewall (AWS Security Groups, Oracle Clou
 | Port | Protocol | Usage | Required |
 |---|---|---|---|
 | `51820` | **UDP** | WireGuard VPN Tunnel Traffic | **Yes** (Public) |
+| `8888` | **TCP** | God-Level Cyber-Command Dashboard | Yes |
 | `51821` | **TCP** | WireGuard Web Admin Dashboard | Yes |
 | `8080` | **TCP** | AdGuard Home Dashboard | Yes |
 | `3000` | **TCP** | AdGuard Initial Setup Wizard | Yes (First run only) |
