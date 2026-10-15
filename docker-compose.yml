@@ -54,6 +54,25 @@ services:
     depends_on:
       - adguardhome
 
+  god-panel:
+    build:
+      context: ./dashboard
+    container_name: god-panel
+    restart: unless-stopped
+    environment:
+      - PORT=8000
+      - ADGUARD_HOST=http://10.2.0.100:80
+      - WG_HOST=http://10.2.0.200:51821
+    networks:
+      proxy_net:
+        ipv4_address: 10.2.0.50
+    ports:
+      # God-Level Cyber-Command Control Panel (Hacker Dashboard)
+      - "${DASHBOARD_PORT:-8888}:8000/tcp"
+    depends_on:
+      - adguardhome
+      - wg-easy
+
 networks:
   proxy_net:
     name: proxy_net

@@ -93,39 +93,39 @@ if command -v ufw &> /dev/null && sudo ufw status 2>/dev/null | grep -q "Status:
     sudo ufw allow 51821/tcp comment 'WireGuard Web UI'
     sudo ufw allow 3000/tcp comment 'AdGuard Home Initial Wizard'
     sudo ufw allow 8080/tcp comment 'AdGuard Home Web Dashboard'
+    sudo ufw allow 8888/tcp comment 'God-Level Cyber-Command Dashboard'
     sudo ufw reload
     echo "[✓] Firewall rules configured."
 fi
 
 # 6. Launch services
-echo "[+] Starting AdGuard Home and WireGuard containers..."
-docker compose up -d
+echo "[+] Building and starting containers..."
+docker compose up -d --build
 
 source .env
+DASH_PORT=${DASHBOARD_PORT:-8888}
 echo ""
 echo "================================================================="
-echo "  🎉 CONGRATULATIONS! YOUR PRIVATE PROXY SERVER IS LIVE!"
+echo "  🎉 CONGRATULATIONS! YOUR GOD-LEVEL PROXY SERVER IS LIVE!"
 echo "================================================================="
 echo ""
-echo "1. Step 1: Initial AdGuard Home Setup (1-minute wizard):"
+echo "⚡ [MASTER COMMAND CENTER] GOD-LEVEL CYBER-COMMAND HUD:"
+echo "   URL: http://${VPS_PUBLIC_IP}:${DASH_PORT}"
+echo "   (Live telemetry, real-time intercept feed, instant killswitch & target matrix)"
+echo ""
+echo "1. Initial AdGuard Home Setup (1-minute wizard):"
 echo "   URL: http://${VPS_PUBLIC_IP}:3000"
 echo "   Set your admin username and password."
 echo ""
-echo "2. Step 2: Open WireGuard Web UI to Connect Any Device:"
+echo "2. WireGuard Web UI (Client & QR Code Generator):"
 echo "   URL: http://${VPS_PUBLIC_IP}:51821"
 echo "   Password: ${WG_ADMIN_PASSWORD}"
 echo "   - Click '+ New Client' (e.g., 'My-Phone', 'My-Laptop', 'My-iPad')"
 echo ""
 echo "3. Connect Your Devices:"
 echo "   📱 Mobile (Android / iPhone / iPad):"
-echo "      Install the free 'WireGuard' app, tap '+', and scan the QR code."
+echo "      Install free 'WireGuard' app, tap '+', and scan the QR code."
 echo ""
 echo "   💻 Computer (Windows / macOS / Linux):"
 echo "      Download the '.conf' profile from the web UI and import it into WireGuard."
-echo ""
-echo "4. AdGuard Home Controls (Parental controls & Website blocking):"
-echo "   URL: http://${VPS_PUBLIC_IP}:8080"
-echo "   - Block Services: 1-click block YouTube, TikTok, Discord, Steam, etc."
-echo "   - Block Domains: Add custom website URLs in 'Custom filtering rules'."
-echo "   - SafeSearch: Enable under 'Settings' -> 'General settings'."
 echo "================================================================="
