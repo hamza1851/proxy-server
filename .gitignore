@@ -1,0 +1,17 @@
+# Environment variables and secrets
+.env
+
+# WireGuard runtime data and client keys
+wireguard-data/
+
+# AdGuard Home configuration and database/work files
+adguard-work/
+adguard-conf/
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
