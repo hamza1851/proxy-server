@@ -15,3 +15,11 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+
+# Node.js dependencies and build artifacts
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+npm-debug.log*
