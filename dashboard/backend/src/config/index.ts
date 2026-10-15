@@ -42,5 +42,7 @@ export const config = {
   mongoUri: process.env.MONGODB_URI || '',
   jwtSecret: process.env.JWT_SECRET || 'cyber-proxy-super-secret-key-2025',
   adminUser: process.env.PANEL_ADMIN_USER || 'admin',
-  adminPassword: process.env.PANEL_ADMIN_PASSWORD || 'ProxyMaster2025!'
+  adminPassword: process.env.PANEL_ADMIN_PASSWORD || 'ProxyMaster2025!',
+  vpsPublicIp: process.env.VPS_PUBLIC_IP || '',
+  wgPort: Number(process.env.WG_PORT) || 51820
 } as const;

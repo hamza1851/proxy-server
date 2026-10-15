@@ -4,6 +4,7 @@ import { config } from '../config/index.js';
 import { UserModel } from './models/User.js';
 import { DeviceModel } from './models/Device.js';
 import { DeviceService } from '../services/deviceService.js';
+import { ConfigService } from '../services/configService.js';
 
 let isConnected = false;
 
@@ -28,6 +29,9 @@ export async function connectDatabase(): Promise<boolean> {
 
     // Seed initial devices if empty
     await seedDevices();
+
+    // Seed initial configs if empty
+    await ConfigService.seedDefaults();
 
     mongoose.connection.on('disconnected', () => {
       isConnected = false;

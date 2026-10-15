@@ -1,0 +1,74 @@
+[
+  {
+    "key": "VPS_PUBLIC_IP",
+    "value": "198.51.100.24",
+    "category": "Network",
+    "description": "Public IPv4 address or FQDN domain of your VPS host. Used to generate WireGuard endpoints and encrypted DoH client configurations.",
+    "isSecret": false,
+    "isSystem": true,
+    "updatedAt": "2026-10-15T10:00:19.233Z"
+  },
+  {
+    "key": "WG_PORT",
+    "value": "51820",
+    "category": "WireGuard",
+    "description": "UDP listening port for WireGuard VPN tunnel ingress.",
+    "isSecret": false,
+    "isSystem": true,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "WG_DEFAULT_DNS",
+    "value": "10.2.0.100",
+    "category": "WireGuard",
+    "description": "Primary DNS server pushed to connected mobile and desktop VPN peers (AdGuard internal container IP).",
+    "isSecret": false,
+    "isSystem": true,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "DOH_URL",
+    "value": "",
+    "category": "DNS",
+    "description": "Custom Encrypted DNS-over-HTTPS endpoint URL. If empty, automatically resolves as https://<VPS_PUBLIC_IP>/dns-query.",
+    "isSecret": false,
+    "isSystem": true,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "DOT_PORT",
+    "value": "853",
+    "category": "DNS",
+    "description": "Standard TCP port for DNS-over-TLS (DoT) used by native Android Private DNS configurations.",
+    "isSecret": false,
+    "isSystem": true,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "CURFEW_DEFAULT_START",
+    "value": "23",
+    "category": "Security",
+    "description": "Global default curfew freeze start hour (0-23 in 24-hour military format).",
+    "isSecret": false,
+    "isSystem": false,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "CURFEW_DEFAULT_END",
+    "value": "6",
+    "category": "Security",
+    "description": "Global default curfew freeze release hour (0-23 in 24-hour military format).",
+    "isSecret": false,
+    "isSystem": false,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  },
+  {
+    "key": "KILLSWITCH_FAILSAFE_MODE",
+    "value": "hard-drop",
+    "category": "Security",
+    "description": "Emergency Master Killswitch behavior: \"hard-drop\" (null-route all queries) or \"sinkhole\" (redirect to local block portal).",
+    "isSecret": false,
+    "isSystem": false,
+    "updatedAt": "2026-10-15T09:55:05.956Z"
+  }
+]
