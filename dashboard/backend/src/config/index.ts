@@ -38,5 +38,9 @@ export const config = {
   adguardUser: process.env.ADGUARD_USER || 'admin',
   adguardPass: process.env.ADGUARD_PASS || 'ProxyMaster2025!',
   dataPath: resolveDataPath(),
-  frontendDistPath: resolveFrontendDist()
+  frontendDistPath: resolveFrontendDist(),
+  mongoUri: process.env.MONGODB_URI || '',
+  jwtSecret: process.env.JWT_SECRET || 'cyber-proxy-super-secret-key-2025',
+  adminUser: process.env.PANEL_ADMIN_USER || 'admin',
+  adminPassword: process.env.PANEL_ADMIN_PASSWORD || 'ProxyMaster2025!'
 } as const;

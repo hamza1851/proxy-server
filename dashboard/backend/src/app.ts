@@ -5,14 +5,21 @@ import path from 'path';
 import { config } from './config/index.js';
 import apiRouter from './routes/index.js';
 import { SplashController } from './controllers/splashController.js';
+import { authMiddleware } from './middleware/authMiddleware.js';
+import { connectDatabase } from './db/connection.js';
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// API endpoints
-app.use('/api', apiRouter);
+// Initialize MongoDB Connection (resilient with local fallback)
+connectDatabase().catch((err) => {
+  console.warn('[Database] Initial connection attempt error:', err);
+});
+
+// API endpoints (with auth protection)
+app.use('/api', authMiddleware as any, apiRouter);
 
 // Blocked Splash endpoint (rendered when client visits restricted page)
 app.get('/blocked', SplashController.renderBlockedPage);

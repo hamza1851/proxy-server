@@ -2,39 +2,44 @@ import { Request, Response } from 'express';
 import { DeviceService } from '../services/deviceService.js';
 
 export class SplashController {
-  public static updateSplash(req: Request, res: Response): void {
-    const { splash } = req.body;
-    const deviceId = req.params.id;
+  public static async updateSplash(req: Request, res: Response): Promise<void> {
+    try {
+      const { splash } = req.body;
+      const deviceId = req.params.id;
 
-    const device = DeviceService.getById(deviceId);
-    if (!device) {
-      res.status(404).json({ error: 'Device not found' });
-      return;
+      const device = await DeviceService.getById(deviceId);
+      if (!device) {
+        res.status(404).json({ error: 'Device not found' });
+        return;
+      }
+
+      const updated = await DeviceService.updateSplashConfig(deviceId, splash);
+      res.json({
+        success: true,
+        device: updated,
+        message: `Custom block screen updated for ${device.name}`
+      });
+    } catch {
+      res.status(500).json({ error: 'Failed to update splash' });
     }
-
-    const updated = DeviceService.updateSplashConfig(deviceId, splash);
-    res.json({
-      success: true,
-      device: updated,
-      message: `Custom block screen updated for ${device.name}`
-    });
   }
 
-  public static renderBlockedPage(req: Request, res: Response): void {
-    const clientIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '').replace('::ffff:', '');
-    const devices = DeviceService.getAll();
-    const matchedDevice = devices.find((d) => d.ip === clientIp) || devices[0];
-    const splash = matchedDevice?.customSplash || {
-      enabled: true,
-      title: 'ACCESS RESTRICTED BY CYBER OPERATOR',
-      badge: '⛔',
-      message: 'This domain violates proxy policy. Return to authorized terminals.',
-      imageUrl: ''
-    };
+  public static async renderBlockedPage(req: Request, res: Response): Promise<void> {
+    try {
+      const clientIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '').replace('::ffff:', '');
+      const devices = await DeviceService.getAll();
+      const matchedDevice = devices.find((d) => d.ip === clientIp) || devices[0];
+      const splash = matchedDevice?.customSplash || {
+        enabled: true,
+        title: 'ACCESS RESTRICTED BY CYBER OPERATOR',
+        badge: '⛔',
+        message: 'This domain violates proxy policy. Return to authorized terminals.',
+        imageUrl: ''
+      };
 
-    const targetDomain = req.query.domain || 'restricted-node.local';
+      const targetDomain = req.query.domain || 'restricted-node.local';
 
-    res.send(`<!DOCTYPE html>
+      res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -146,5 +151,8 @@ export class SplashController {
   </div>
 </body>
 </html>`);
+    } catch (err) {
+      res.status(500).send('Security error rendering lockout portal.');
+    }
   }
 }

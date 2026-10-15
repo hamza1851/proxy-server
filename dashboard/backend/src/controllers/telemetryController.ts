@@ -10,7 +10,7 @@ export class TelemetryController {
     try {
       const system = SystemService.getMetrics();
       const stats = await AdGuardService.getStats();
-      const devices = DeviceService.getAll();
+      const devices = await DeviceService.getAll();
       const blockedServices = await AdGuardService.getBlockedServices();
 
       const totalQueries = stats.num_dns_queries || 0;
